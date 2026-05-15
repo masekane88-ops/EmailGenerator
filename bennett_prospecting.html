@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bennett Motor Express — Daily Prospecting</title>
+<style>
+  :root {
+    --red:#d9263e; --dark:#edf2fb; --mid:#ffffff; --card:#dce8f6;
+    --gold:#b87000; --text:#152035; --muted:#4a6888; --green:#187a44;
+    --border:rgba(50,110,200,0.15); --star:#b08000; --orange:#b85210;
+    --blue:#2565b5; --purple:#5840a0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;line-height:1.5;}
+
+  header{background:linear-gradient(135deg,#0c1220,#180a12);border-bottom:3px solid var(--red);padding:20px 30px;display:flex;align-items:center;gap:18px;}
+  .logo-block{display:flex;flex-direction:column;}
+  .logo-block .company{font-size:1.5rem;font-weight:800;color:#fff;letter-spacing:1px;}
+  .logo-block .tagline{font-size:.72rem;color:var(--red);text-transform:uppercase;letter-spacing:2px;font-weight:600;}
+  .logo-block .co-phone{font-size:.9rem;color:#b0c8e0;margin-top:5px;}
+  .header-right{margin-left:auto;text-align:right;}
+  .date-display{font-size:.85rem;color:#7a9ab8;}
+  .date-display span{color:#f0b832;font-weight:700;}
+
+  .stats-bar{background:rgba(37,101,181,.05);padding:9px 28px;display:flex;gap:24px;flex-wrap:wrap;border-bottom:1px solid var(--border);font-size:.75rem;}
+  .stat{display:flex;gap:5px;align-items:center;}
+  .stat-val{font-weight:700;color:var(--text);}
+  .stat-lbl{color:var(--muted);}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+
+  .controls{background:var(--mid);padding:16px 28px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);}
+  .btn{padding:10px 18px;border:none;border-radius:9px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.4px;}
+  .btn-call{background:var(--red);color:#fff;}
+  .btn-call:hover{background:#c01830;transform:translateY(-1px);box-shadow:0 4px 14px rgba(200,16,46,.35);}
+  .btn-email{background:var(--gold);color:#fff;}
+  .btn-email:hover{background:#9a5e00;transform:translateY(-1px);}
+  .btn-both{background:var(--green);color:#fff;}
+  .btn-both:hover{background:#126038;transform:translateY(-1px);}
+  .btn-export{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-export:hover{color:var(--text);border-color:var(--muted);}
+  .filter-label{color:var(--muted);font-size:.82rem;margin-left:8px;}
+  select{background:var(--card);color:var(--text);border:1px solid var(--border);padding:9px 12px;border-radius:6px;font-size:.82rem;cursor:pointer;}
+
+  /* TABS */
+  .tab-nav{background:var(--mid);padding:0 28px;display:flex;border-bottom:2px solid var(--border);}
+  .tab-btn{background:transparent;border:none;color:var(--muted);padding:13px 22px;font-size:.87rem;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--text);border-bottom-color:var(--red);}
+  .tab-btn.t-star.active{border-bottom-color:var(--star);}
+  .tab-btn.t-cust.active{border-bottom-color:var(--blue);}
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+  .pill{background:rgba(37,101,181,.1);color:var(--muted);padding:1px 8px;border-radius:10px;font-size:.68rem;margin-left:5px;}
+  .pill.p-star{background:rgba(176,128,0,.13);color:var(--star);}
+  .pill.p-cust{background:rgba(37,101,181,.13);color:var(--blue);}
+  .pill.p-over{background:rgba(184,82,16,.13);color:var(--orange);}
+
+  /* OVERFLOW POOL */
+  .overflow-section{padding:15px 28px 0;display:none;}
+  .overflow-section.has-items{display:block;}
+  .overflow-bar{background:rgba(184,82,16,.07);border:1px solid rgba(184,82,16,.2);border-radius:8px;padding:10px 15px;display:flex;align-items:center;gap:10px;margin-bottom:4px;cursor:pointer;}
+  .overflow-bar-title{font-size:.88rem;font-weight:700;color:var(--orange);}
+  .overflow-bar .toggle-icon{margin-left:auto;color:var(--muted);font-size:.75rem;}
+  .overflow-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;padding:8px 0 12px;padding-right:4px;}
+  .overflow-list::-webkit-scrollbar{width:3px;}
+  .overflow-list::-webkit-scrollbar-thumb{background:rgba(184,82,16,.25);border-radius:2px;}
+  .over-card{background:#fff8f4;border:1px solid rgba(184,82,16,.15);border-left:3px solid var(--orange);border-radius:8px;padding:12px 14px;}
+  .over-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .over-name{font-size:.9rem;font-weight:700;color:var(--text);flex:1;}
+  .attempts-badge{font-size:.65rem;background:rgba(184,82,16,.12);color:var(--orange);padding:2px 8px;border-radius:10px;font-weight:700;}
+  .over-meta{font-size:.73rem;color:var(--muted);margin-bottom:6px;}
+  .over-footer{display:flex;gap:6px;}
+  .btn-retry{background:rgba(24,122,68,.1);border:1px solid rgba(24,122,68,.22);color:#156038;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.7rem;}
+  .btn-retry:hover{background:rgba(24,122,68,.18);}
+  .btn-reached{background:rgba(37,101,181,.1);border:1px solid rgba(37,101,181,.22);color:var(--blue);padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.7rem;}
+  .btn-reached:hover{background:rgba(37,101,181,.18);}
+  .btn-drop{background:transparent;border:1px solid rgba(200,16,46,.2);color:#a01828;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.7rem;}
+  .btn-drop:hover{background:rgba(200,16,46,.07);}
+
+  /* MAIN GRID */
+  .main{padding:20px 28px;display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media(max-width:900px){.main{grid-template-columns:1fr;}}
+  .panel-header{display:flex;align-items:center;gap:10px;margin-bottom:13px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+  .panel-title{font-size:1.05rem;font-weight:700;}
+  .panel-count{background:var(--card);padding:2px 9px;border-radius:20px;font-size:.72rem;color:var(--muted);margin-left:auto;}
+  .badge-call{color:var(--red);}
+  .badge-email{color:var(--gold);}
+  .badge-star{color:var(--star);}
+  .badge-blue{color:var(--blue);}
+  .copy-all{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:4px;cursor:pointer;font-size:.72rem;}
+  .copy-all:hover{color:var(--text);border-color:var(--muted);}
+
+  .prospect-list{display:flex;flex-direction:column;gap:9px;max-height:76vh;overflow-y:auto;padding-right:3px;}
+  .prospect-list::-webkit-scrollbar{width:3px;}
+  .prospect-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+  /* CARDS */
+  .card{background:var(--mid);border:1px solid var(--border);border-radius:13px;padding:16px 18px;transition:all .2s;position:relative;box-shadow:0 1px 5px rgba(37,101,181,.07);}
+  .card:hover{border-color:rgba(37,101,181,.32);box-shadow:0 3px 14px rgba(37,101,181,.1);}
+  .card.priority-high{border-left:3px solid var(--red);}
+  .card.priority-med{border-left:3px solid var(--gold);}
+  .card.priority-low{border-left:3px solid var(--blue);}
+  .card-top{display:flex;align-items:flex-start;gap:9px;margin-bottom:7px;}
+  .card-num{font-size:.68rem;color:var(--muted);min-width:18px;padding-top:2px;}
+  .card-name{font-size:.92rem;font-weight:700;color:var(--text);flex:1;}
+  .card-ind{font-size:.68rem;padding:2px 7px;border-radius:10px;background:rgba(37,101,181,.09);color:var(--blue);white-space:nowrap;}
+  .chip{font-size:.62rem;padding:2px 6px;border-radius:10px;font-weight:700;text-transform:uppercase;}
+  .chip.high{background:rgba(200,16,46,.1);color:#a01828;}
+  .chip.med{background:rgba(184,112,0,.1);color:var(--gold);}
+  .chip.low{background:rgba(37,101,181,.1);color:var(--blue);}
+  .card-loc{font-size:.72rem;color:var(--muted);margin-bottom:5px;}
+  .card-loc span{color:var(--text);}
+  .card-why{font-size:.78rem;color:#3a5872;line-height:1.5;margin-bottom:7px;}
+  .tp-label{font-size:.67rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+  .tp-list{list-style:none;}
+  .tp-list li{font-size:.75rem;color:#4a6885;padding:2px 0 2px 11px;position:relative;}
+  .tp-list li::before{content:"›";position:absolute;left:0;color:var(--red);}
+  .card-footer{display:flex;align-items:center;gap:7px;margin-top:9px;padding-top:7px;border-top:1px solid var(--border);flex-wrap:wrap;}
+  .approach-tag{font-size:.68rem;padding:2px 7px;border-radius:10px;background:rgba(24,122,68,.1);color:#156038;flex:1;min-width:0;}
+  .copy-card{background:transparent;border:1px solid var(--border);color:var(--muted);padding:2px 9px;border-radius:4px;cursor:pointer;font-size:.68rem;}
+  .copy-card:hover{color:var(--text);border-color:var(--muted);}
+  .star-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:2px 9px;border-radius:4px;cursor:pointer;font-size:.68rem;transition:all .2s;}
+  .star-btn:hover{border-color:var(--star);color:var(--star);}
+  .star-btn.is-starred{border-color:var(--star);color:var(--star);background:rgba(176,128,0,.1);}
+  .no-ans-btn{background:transparent;border:1px solid rgba(184,82,16,.28);color:var(--orange);padding:2px 9px;border-radius:4px;cursor:pointer;font-size:.68rem;transition:all .2s;}
+  .no-ans-btn:hover{background:rgba(184,82,16,.09);}
+  .skip-btn{background:transparent;border:1px solid rgba(120,40,40,.2);color:#a04050;padding:2px 8px;border-radius:4px;cursor:pointer;font-size:.72rem;font-weight:700;transition:all .2s;line-height:1;}
+  .skip-btn:hover{background:rgba(180,40,50,.09);border-color:rgba(180,40,50,.4);}
+  .done-btn{background:transparent;border:1px solid rgba(24,122,68,.25);color:#187a44;padding:2px 9px;border-radius:4px;cursor:pointer;font-size:.68rem;font-weight:600;transition:all .2s;}
+  .done-btn:hover{background:rgba(24,122,68,.1);}
+  .done-btn.is-done{background:rgba(24,122,68,.13);border-color:rgba(24,122,68,.45);color:#156038;}
+  .card-done{opacity:.65;}
+  .card-done .card-name{text-decoration:line-through;opacity:.6;}
+
+  /* HIGH LEADS */
+  .hl-container{padding:22px 28px;}
+  .hl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:14px;}
+  .hl-notes{margin-top:9px;}
+  .hl-notes-lbl{font-size:.63rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+  .hl-notes textarea{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 7px;font-size:.74rem;resize:none;font-family:inherit;line-height:1.5;height:50px;}
+  .hl-notes textarea:focus{outline:none;border-color:rgba(37,101,181,.38);}
+  .hl-src{font-size:.62rem;padding:1px 6px;border-radius:8px;background:rgba(37,101,181,.09);color:var(--blue);}
+  .remove-hl{background:transparent;border:1px solid rgba(200,16,46,.22);color:#a01828;padding:2px 9px;border-radius:4px;cursor:pointer;font-size:.68rem;}
+  .remove-hl:hover{background:rgba(200,16,46,.07);}
+
+  /* CUSTOMERS */
+  .cust-container{padding:22px 28px;}
+  .cust-layout{display:grid;grid-template-columns:340px 1fr;gap:24px;}
+  @media(max-width:1100px){.cust-layout{grid-template-columns:1fr;}}
+  .cust-form-panel{background:var(--mid);border:1px solid var(--border);border-radius:8px;padding:18px;height:fit-content;box-shadow:0 1px 5px rgba(37,101,181,.07);}
+  .cust-form-title{font-size:.95rem;font-weight:700;color:var(--blue);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .cust-form-panel label{font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);display:block;margin-bottom:4px;margin-top:10px;}
+  .cust-form-panel label:first-of-type{margin-top:0;}
+  .cust-form-panel input, .cust-form-panel select, .cust-form-panel textarea{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:5px;font-size:.82rem;font-family:inherit;}
+  .cust-form-panel input:focus, .cust-form-panel select:focus, .cust-form-panel textarea:focus{outline:none;border-color:rgba(37,101,181,.4);}
+  .cust-form-panel textarea{resize:none;height:60px;line-height:1.5;}
+  .btn-add-cust{width:100%;margin-top:14px;background:var(--blue);color:#fff;padding:10px;border:none;border-radius:6px;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .btn-add-cust:hover{background:#1e509a;}
+  .cust-grid{display:flex;flex-direction:column;gap:10px;max-height:82vh;overflow-y:auto;padding-right:4px;}
+  .cust-grid::-webkit-scrollbar{width:3px;}
+  .cust-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .cust-card{background:var(--mid);border:1px solid var(--border);border-radius:8px;padding:14px 16px;box-shadow:0 1px 5px rgba(37,101,181,.06);}
+  .cust-card.status-active{border-left:3px solid var(--green);}
+  .cust-card.status-followup{border-left:3px solid var(--gold);}
+  .cust-card.status-atrisk{border-left:3px solid var(--red);}
+  .cust-top{display:flex;align-items:flex-start;gap:9px;margin-bottom:7px;}
+  .cust-name{font-size:.95rem;font-weight:700;color:var(--text);flex:1;}
+  .status-chip{font-size:.62rem;padding:2px 7px;border-radius:10px;font-weight:700;text-transform:uppercase;}
+  .status-chip.active{background:rgba(24,122,68,.12);color:#156038;}
+  .status-chip.followup{background:rgba(184,112,0,.12);color:var(--gold);}
+  .status-chip.atrisk{background:rgba(200,16,46,.12);color:#a01828;}
+  .cust-meta{font-size:.74rem;color:var(--muted);margin-bottom:5px;}
+  .cust-meta span{color:var(--text);}
+  .cust-notes{font-size:.76rem;color:#3a5872;line-height:1.5;margin-bottom:8px;}
+  .cust-footer{display:flex;gap:7px;margin-top:8px;padding-top:7px;border-top:1px solid var(--border);}
+  .btn-edit-cust{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.68rem;}
+  .btn-edit-cust:hover{color:var(--text);border-color:var(--muted);}
+  .btn-del-cust{background:transparent;border:1px solid rgba(200,16,46,.22);color:#a01828;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:.68rem;}
+  .btn-del-cust:hover{background:rgba(200,16,46,.07);}
+  .cust-contact-info{font-size:.73rem;color:var(--muted);margin-top:4px;}
+  .cust-contact-info a{color:var(--blue);text-decoration:none;}
+  .cust-added{font-size:.65rem;color:var(--muted);margin-left:auto;}
+  .cust-empty{text-align:center;padding:50px 20px;color:var(--muted);}
+  .cust-empty .icon{font-size:2.5rem;margin-bottom:12px;opacity:.4;}
+
+  .empty-state{text-align:center;padding:55px 20px;color:var(--muted);}
+  .empty-state .icon{font-size:2.8rem;margin-bottom:13px;opacity:.4;}
+  .empty-state p{font-size:.88rem;}
+  .toast{position:fixed;bottom:28px;right:28px;background:var(--green);color:#fff;padding:11px 18px;border-radius:10px;font-size:.83rem;font-weight:600;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:1000;}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* TODAY'S CALLBACKS BANNER */
+  .today-cb-section{padding:14px 28px 0;display:none;}
+  .today-cb-section.has-items{display:block;}
+  .today-cb-bar{background:rgba(37,101,181,.07);border:1px solid rgba(37,101,181,.2);border-radius:11px;padding:11px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .today-cb-title{font-size:.9rem;font-weight:700;color:var(--blue);flex:1;}
+  .today-cb-list{padding:10px 0 4px;display:none;flex-direction:column;gap:8px;}
+  .tcb-card{background:rgba(37,101,181,.05);border:1px solid rgba(37,101,181,.15);border-left:3px solid var(--blue);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tcb-name{font-weight:700;font-size:.9rem;flex:1;}
+  .tcb-meta{font-size:.72rem;color:var(--muted);}
+  .tcb-note{font-size:.75rem;color:#4a6885;flex:1;}
+  .btn-tcb-done{background:rgba(24,122,68,.1);border:1px solid rgba(24,122,68,.2);color:#156038;padding:3px 11px;border-radius:6px;cursor:pointer;font-size:.7rem;}
+  .btn-tcb-done:hover{background:rgba(24,122,68,.18);}
+
+  /* CALLBACK MODAL */
+  .cb-overlay{position:fixed;inset:0;background:rgba(10,20,40,.45);backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;z-index:2000;}
+  .cb-overlay.open{display:flex;}
+  .cb-box{background:#fff;border:1px solid var(--border);border-radius:16px;padding:26px 28px;width:360px;max-width:95vw;box-shadow:0 20px 60px rgba(37,101,181,.18);}
+  .cb-box h3{font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .cb-box .cb-company{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .cb-box .cb-industry{font-size:.75rem;color:var(--muted);margin-bottom:16px;}
+  .cb-field{margin-bottom:13px;}
+  .cb-field label{font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);display:block;margin-bottom:5px;}
+  .cb-field input,.cb-field textarea{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:.85rem;font-family:inherit;}
+  .cb-field input:focus,.cb-field textarea:focus{outline:none;border-color:rgba(37,101,181,.45);}
+  .cb-field textarea{resize:none;height:56px;line-height:1.5;}
+  .cb-actions{display:flex;gap:10px;margin-top:16px;}
+  .cb-actions .btn-save{flex:1;background:var(--blue);color:#fff;border:none;padding:10px;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;}
+  .cb-actions .btn-save:hover{background:#1e509a;}
+  .cb-actions .btn-cancel{background:transparent;border:1px solid var(--border);color:var(--muted);padding:10px 16px;border-radius:8px;font-size:.85rem;cursor:pointer;}
+  .cb-actions .btn-cancel:hover{color:var(--text);border-color:var(--muted);}
+  .cb-btn{background:transparent;border:1px solid rgba(37,101,181,.28);color:var(--blue);padding:2px 9px;border-radius:6px;cursor:pointer;font-size:.68rem;transition:all .2s;}
+  .cb-btn:hover{background:rgba(37,101,181,.09);}
+
+  /* CALLBACKS TAB */
+  .cb-container{padding:22px 28px;}
+  .cb-layout{display:grid;grid-template-columns:320px 1fr;gap:24px;}
+  @media(max-width:960px){.cb-layout{grid-template-columns:1fr;}}
+  .cal-panel{background:var(--mid);border:1px solid var(--border);border-radius:14px;padding:18px;height:fit-content;box-shadow:0 2px 10px rgba(37,101,181,.07);}
+  .cal-nav{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+  .cal-month-label{flex:1;font-size:1rem;font-weight:700;color:var(--text);text-align:center;}
+  .cal-nav-btn{background:transparent;border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;}
+  .cal-nav-btn:hover{color:var(--text);border-color:var(--muted);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+  .cal-dow{text-align:center;font-size:.65rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0;}
+  .cal-day{min-height:42px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:4px;position:relative;transition:background .15s;}
+  .cal-day:hover{background:rgba(37,101,181,.08);}
+  .cal-day.today{background:rgba(217,38,62,.1);color:var(--red);font-weight:700;}
+  .cal-day.selected{background:rgba(37,101,181,.18);color:var(--blue);font-weight:700;border:1px solid rgba(37,101,181,.35);}
+  .cal-day.has-cb:not(.selected):not(.today){background:rgba(37,101,181,.07);}
+  .cal-day-num{font-size:.85rem;font-weight:600;}
+  .cal-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);margin-top:2px;}
+  .cal-day.empty{cursor:default;pointer-events:none;}
+  .cal-day.other-month .cal-day-num{color:rgba(21,32,53,.22);}
+  .cal-today-btn{width:100%;margin-top:12px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px;border-radius:8px;font-size:.78rem;cursor:pointer;}
+  .cal-today-btn:hover{color:var(--text);border-color:var(--muted);}
+  .cb-day-panel{background:var(--mid);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(37,101,181,.07);}
+  .cb-day-heading{font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .cb-day-list{display:flex;flex-direction:column;gap:10px;max-height:65vh;overflow-y:auto;padding-right:4px;}
+  .cb-day-list::-webkit-scrollbar{width:3px;}
+  .cb-day-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .cb-prospect-card{background:var(--dark);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:11px;padding:14px 16px;}
+  .cb-prospect-card .card-top{margin-bottom:6px;}
+  .cb-note-display{font-size:.76rem;color:var(--muted);font-style:italic;margin:5px 0 8px;}
+  .btn-cb-done{background:rgba(24,122,68,.1);border:1px solid rgba(24,122,68,.2);color:#156038;padding:3px 11px;border-radius:6px;cursor:pointer;font-size:.7rem;}
+  .btn-cb-done:hover{background:rgba(24,122,68,.18);}
+  .btn-cb-del{background:transparent;border:1px solid rgba(200,16,46,.2);color:#a01828;padding:3px 10px;border-radius:6px;cursor:pointer;font-size:.7rem;}
+  .btn-cb-del:hover{background:rgba(200,16,46,.07);}
+  .cb-tab-tab.active{border-bottom-color:var(--blue)!important;}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="width:46px;height:46px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;flex-shrink:0;">B</div>
+  <div class="logo-block">
+    <div class="company">Bennett Motor Express</div>
+    <div class="tagline">Heavy Haul Division — Daily Prospecting</div>
+    <div class="co-phone">📞 +1 (877) 915-9589</div>
+  </div>
+  <div class="header-right">
+    <div class="date-display">Today: <span id="todayDate"></span></div>
+    <div class="date-display" style="margin-top:3px;">Seed: <span id="seedDisplay" style="color:var(--muted);font-size:.72rem;"></span></div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><span class="dot" style="background:var(--red)"></span><span class="stat-val" id="statCall">0</span><span class="stat-lbl">Calls</span></div>
+  <div class="stat"><span class="dot" style="background:var(--gold)"></span><span class="stat-val" id="statEmail">0</span><span class="stat-lbl">Emails</span></div>
+  <div class="stat"><span class="dot" style="background:#e74c3c"></span><span class="stat-val" id="statHigh">0</span><span class="stat-lbl">High Priority</span></div>
+  <div class="stat"><span class="dot" style="background:var(--gold)"></span><span class="stat-val" id="statMed">0</span><span class="stat-lbl">Med Priority</span></div>
+  <div class="stat"><span class="dot" style="background:var(--orange)"></span><span class="stat-val" id="statOverflow">0</span><span class="stat-lbl">Overflow Pool</span></div>
+  <div class="stat"><span class="dot" style="background:var(--star)"></span><span class="stat-val" id="statStarred">0</span><span class="stat-lbl">High Leads</span></div>
+  <div class="stat"><span class="dot" style="background:var(--blue)"></span><span class="stat-val" id="statCB">0</span><span class="stat-lbl">Callbacks Scheduled</span></div>
+  <div class="stat"><span class="dot" style="background:var(--blue)"></span><span class="stat-val" id="statCust">0</span><span class="stat-lbl">Customers</span></div>
+  <div class="stat"><span class="dot" style="background:#a04050"></span><span class="stat-val" id="statSkipped">0</span><span class="stat-lbl">Skipped</span></div>
+  <div class="stat" style="margin-left:auto;border-left:1px solid var(--border);padding-left:20px;"><span class="dot" style="background:var(--green)"></span><span class="stat-val" id="statCallsDone" style="color:var(--green);">0</span><span class="stat-lbl">Calls Done</span></div>
+  <div class="stat"><span class="dot" style="background:var(--green)"></span><span class="stat-val" id="statEmailsDone" style="color:var(--green);">0</span><span class="stat-lbl">Emails Done</span></div>
+  <div class="stat"><span class="dot" style="background:var(--green)"></span><span class="stat-val" id="statTotalDone" style="color:var(--green);font-size:.9rem;">0</span><span class="stat-lbl" style="font-weight:700;">Total Today</span></div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-call" onclick="generateCalls()">📞 Generate 50 Call Prospects</button>
+  <button class="btn btn-email" onclick="generateEmails()">✉️ Generate 50 Email Prospects</button>
+  <button class="btn btn-both" onclick="generateBoth()">⚡ Generate Both Lists</button>
+  <span class="filter-label">Filter:</span>
+  <select id="industryFilter" onchange="applyFilter()">
+    <option value="all">All Industries</option>
+    <option value="Modular Buildings">Modular Buildings</option>
+    <option value="Oil & Gas">Oil & Gas</option>
+    <option value="Agricultural Equipment">Agricultural Equipment</option>
+    <option value="Construction Equipment">Construction Equipment</option>
+    <option value="Mining Equipment">Mining Equipment</option>
+    <option value="Wind Energy">Wind Energy</option>
+    <option value="Vaults & Security">Vaults & Security</option>
+    <option value="Industrial Pipe & Plastics">Industrial Pipe & Plastics</option>
+    <option value="Electrical & Transformers">Electrical & Transformers</option>
+    <option value="Prefab Steel Buildings">Prefab Steel Buildings</option>
+    <option value="Military & Defense">Military & Defense</option>
+    <option value="Armored Vehicles">Armored Vehicles</option>
+    <option value="Crane & Lifting">Crane & Lifting</option>
+    <option value="Water Treatment">Water Treatment</option>
+    <option value="Industrial Machinery">Industrial Machinery</option>
+    <option value="Data Centers & Telecom">Data Centers & Telecom</option>
+    <option value="Show Business">Show Business</option>
+    <option value="Fabricators">Fabricators</option>
+    <option value="Shippers">Shippers</option>
+    <option value="Precast Concrete">Precast Concrete</option>
+    <option value="Rail & Transportation">Rail & Transportation</option>
+    <option value="Power Generation">Power Generation</option>
+    <option value="Marine & Shipbuilding">Marine & Shipbuilding</option>
+    <option value="Material Handling">Material Handling</option>
+  </select>
+  <button class="btn btn-export" onclick="exportCSV('call')">↓ Calls CSV</button>
+  <button class="btn btn-export" onclick="exportCSV('email')">↓ Emails CSV</button>
+  <button class="btn btn-export" onclick="resetDismissed()" title="Bring back all skipped companies">↺ Reset Skipped</button>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('prospects')" id="tab-btn-prospects">📋 Prospects</button>
+  <button class="tab-btn t-star" onclick="switchTab('highleads')" id="tab-btn-highleads">⭐ High Leads <span class="pill p-star" id="hl-badge">0</span></button>
+  <button class="tab-btn cb-tab-tab" onclick="switchTab('callbacks')" id="tab-btn-callbacks" style="color:var(--muted);">📅 Callbacks <span class="pill" id="cb-badge" style="background:rgba(68,136,212,.18);color:var(--blue);">0</span></button>
+  <button class="tab-btn t-cust" onclick="switchTab('customers')" id="tab-btn-customers">👥 Customers <span class="pill p-cust" id="cust-badge">0</span></button>
+</div>
+
+<!-- PROSPECTS TAB -->
+<div class="tab-content active" id="tab-content-prospects">
+  <!-- TODAY'S CALLBACKS -->
+  <div class="today-cb-section" id="todayCBSection">
+    <div class="today-cb-bar" onclick="toggleTodayCB()">
+      <span style="font-size:1.1rem;">📅</span>
+      <span class="today-cb-title">Today's Scheduled Callbacks</span>
+      <span class="pill" style="background:rgba(68,136,212,.18);color:var(--blue);" id="today-cb-badge">0</span>
+      <span style="color:var(--muted);font-size:.75rem;margin-left:4px;" id="today-cb-toggle">▼ Show</span>
+    </div>
+    <div class="today-cb-list" id="todayCBList"></div>
+  </div>
+  <div class="overflow-section" id="overflowSection">
+    <div class="overflow-bar" onclick="toggleOverflow()">
+      <span style="font-size:1rem;">🔁</span>
+      <span class="overflow-bar-title">Overflow Pool — No-Answer Follow-Ups</span>
+      <span class="pill p-over" id="overflow-count-badge">0</span>
+      <span class="toggle-icon" id="overflow-toggle-icon">▼ Show</span>
+    </div>
+    <div class="overflow-list" id="overflowList" style="display:none;"></div>
+  </div>
+
+  <div class="main">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title badge-call">📞 Call List</div>
+        <div class="panel-count" id="callCount">0 prospects</div>
+        <button class="copy-all" onclick="copyAll('call')">Copy All</button>
+      </div>
+      <div class="prospect-list" id="callList">
+        <div class="empty-state"><div class="icon">📞</div><p>Click "Generate Call Prospects" to build your daily list</p></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title badge-email">✉️ Email List</div>
+        <div class="panel-count" id="emailCount">0 prospects</div>
+        <button class="copy-all" onclick="copyAll('email')">Copy All</button>
+      </div>
+      <div class="prospect-list" id="emailList">
+        <div class="empty-state"><div class="icon">✉️</div><p>Click "Generate Email Prospects" to build Chelsea's daily list</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HIGH LEADS TAB -->
+<div class="tab-content" id="tab-content-highleads">
+  <div class="hl-container">
+    <div class="panel-header" style="margin-bottom:18px;">
+      <div class="panel-title badge-star">⭐ High Lead Prospects</div>
+      <div class="panel-count" id="highLeadCount">0 saved</div>
+      <button class="copy-all" onclick="copyAll('highleads')">Copy All</button>
+      <button class="btn btn-export" style="font-size:.72rem;padding:4px 12px;" onclick="exportCSV('highleads')">↓ Export CSV</button>
+      <button class="btn btn-export" style="font-size:.72rem;padding:4px 12px;color:#ff6b81;border-color:rgba(200,16,46,.3);" onclick="clearHighLeads()">🗑 Clear All</button>
+    </div>
+    <div class="hl-grid" id="highLeadList">
+      <div class="empty-state" style="grid-column:1/-1"><div class="icon">⭐</div><p>Star any prospect from your Call or Email lists to save them here.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMERS TAB -->
+<div class="tab-content" id="tab-content-customers">
+  <div class="cust-container">
+    <div class="panel-header" style="margin-bottom:18px;">
+      <div class="panel-title badge-blue">👥 Active Customers</div>
+      <div class="panel-count" id="custCount">0 customers</div>
+      <button class="btn btn-export" style="font-size:.72rem;padding:4px 12px;" onclick="exportCSV('customers')">↓ Export CSV</button>
+    </div>
+    <div class="cust-layout">
+      <div class="cust-form-panel">
+        <div class="cust-form-title">➕ Add / Edit Customer</div>
+        <input type="hidden" id="cust-edit-id" value="">
+        <label>Company Name *</label>
+        <input type="text" id="cust-company" placeholder="Company name">
+        <label>Contact Person</label>
+        <input type="text" id="cust-contact" placeholder="Name and title">
+        <label>Phone</label>
+        <input type="text" id="cust-phone" placeholder="Direct phone number">
+        <label>Email</label>
+        <input type="text" id="cust-email" placeholder="Email address">
+        <label>Industry</label>
+        <select id="cust-industry">
+          <option value="">Select industry...</option>
+          <option>Oil & Gas</option><option>Construction Equipment</option>
+          <option>Agricultural Equipment</option><option>Mining Equipment</option>
+          <option>Crane & Lifting</option><option>Modular Buildings</option>
+          <option>Electrical & Transformers</option><option>Wind Energy</option>
+          <option>Military & Defense</option><option>Prefab Steel Buildings</option>
+          <option>Industrial Machinery</option><option>Fabricators</option>
+          <option>Precast Concrete</option><option>Rail & Transportation</option>
+          <option>Power Generation</option><option>Marine & Shipbuilding</option>
+          <option>Material Handling</option><option>Show Business</option><option>Other</option>
+        </select>
+        <label>Status</label>
+        <select id="cust-status">
+          <option value="active">✅ Active Customer</option>
+          <option value="followup">🔔 Follow-Up Needed</option>
+          <option value="atrisk">⚠️ At-Risk</option>
+        </select>
+        <label>Notes / Lane Info</label>
+        <textarea id="cust-notes" placeholder="Lanes, contact history, key info..."></textarea>
+        <button class="btn-add-cust" onclick="saveCustomer()">Save Customer</button>
+        <button class="btn btn-export" style="width:100%;margin-top:7px;font-size:.78rem;" onclick="cancelEditCustomer()" id="cust-cancel-btn" style="display:none;">Cancel Edit</button>
+      </div>
+      <div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="copy-all" onclick="filterCusts('all')" id="cf-all" style="color:#fff;border-color:rgba(255,255,255,.3);">All</button>
+          <button class="copy-all" onclick="filterCusts('active')" id="cf-active">Active</button>
+          <button class="copy-all" onclick="filterCusts('followup')" id="cf-followup">Follow-Up</button>
+          <button class="copy-all" onclick="filterCusts('atrisk')" id="cf-atrisk">At-Risk</button>
+        </div>
+        <div class="cust-grid" id="custList">
+          <div class="cust-empty"><div class="icon">👥</div><p>Add your active customers to track them here.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALLBACKS TAB -->
+<div class="tab-content" id="tab-content-callbacks">
+  <div class="cb-container">
+    <div class="panel-header" style="margin-bottom:20px;">
+      <div class="panel-title" style="color:var(--blue);">📅 Call-Back Planner</div>
+      <div class="panel-count" id="cbTabCount">0 scheduled</div>
+      <button class="btn btn-export" style="font-size:.72rem;padding:4px 12px;" onclick="exportCSV('callbacks')">↓ Export CSV</button>
+    </div>
+    <div class="cb-layout">
+      <!-- CALENDAR -->
+      <div class="cal-panel">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+          <div class="cal-month-label" id="calMonthLabel"></div>
+          <button class="cal-nav-btn" onclick="calNext()">›</button>
+        </div>
+        <div class="cal-grid" id="calDowRow">
+          <div class="cal-dow">Su</div><div class="cal-dow">Mo</div><div class="cal-dow">Tu</div>
+          <div class="cal-dow">We</div><div class="cal-dow">Th</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div>
+        </div>
+        <div class="cal-grid" id="calDays"></div>
+        <button class="cal-today-btn" onclick="calJumpToday()">Jump to Today</button>
+      </div>
+      <!-- SELECTED DAY PANEL -->
+      <div class="cb-day-panel">
+        <div class="cb-day-heading">
+          <span id="cbDayLabel" style="color:var(--blue);">Select a day to see callbacks</span>
+          <span class="panel-count" id="cbDayCount" style="margin-left:auto;"></span>
+        </div>
+        <div class="cb-day-list" id="cbDayList">
+          <div class="empty-state"><div class="icon">📅</div><p>Click a day on the calendar to see scheduled callbacks.<br><br>Schedule callbacks using the <strong>📅 Callback</strong> button on any prospect card.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CALLBACK MODAL -->
+<div class="cb-overlay" id="cbOverlay" onclick="if(event.target===this)hideCbModal()">
+  <div class="cb-box">
+    <h3>📅 Schedule Callback</h3>
+    <div class="cb-company" id="cbModalName"></div>
+    <div class="cb-industry" id="cbModalIndustry"></div>
+    <div class="cb-field">
+      <label>Call-Back Date</label>
+      <input type="date" id="cbDate">
+    </div>
+    <div class="cb-field">
+      <label>Reminder Note (optional)</label>
+      <textarea id="cbNote" placeholder="e.g. Call back after quote sent, ask for Tom in logistics..."></textarea>
+    </div>
+    <div class="cb-actions">
+      <button class="btn-save" onclick="confirmCallback()">📅 Schedule</button>
+      <button class="btn-cancel" onclick="hideCbModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── PROSPECT DATABASE ────────────────────────────────────────────────────────
+const DB = [
+  // MODULAR BUILDINGS
+  {n:"Williams Scotsman",i:"Modular Buildings",s:"Atlanta, GA",p:"high",w:"Largest modular/storage unit fleet in North America — constant relocation of office complexes, classrooms, and large modular assets across the Southeast.",ca:"Ask for logistics or fleet relocation coordinator. Mention WillScott competitor experience.",ea:"Reference experience with modular building companies and Southeast coverage.",pts:["Nationwide relocations of oversized portable offices","Classroom and government complex moves","Consistent lane repeat business potential"]},
+  {n:"ATCO Structures & Logistics",i:"Modular Buildings",s:"Houston, TX",p:"high",w:"Manufactures large workforce accommodation camps — single moves can be 10–40 loads of heavy modular units for oil sands and oilfield projects.",ca:"Ask for the transportation or project logistics manager.",ea:"Lead with oil & gas camp relocation expertise.",pts:["Oilfield workforce camp deployments","Large multi-load projects","Time-sensitive moves for project startups"]},
+  {n:"Satellite Shelters",i:"Modular Buildings",s:"Greensboro, NC",p:"med",w:"Mid-size modular and storage fleet; regular moves through the Southeast corridor where Bennett has strong coverage.",ca:"Reach the branch operations manager.",ea:"Highlight Southeast lanes and quick turnaround.",pts:["Office and storage relocations","Repeat-freight potential","SE price-competitive lanes"]},
+  {n:"Triumph Modular",i:"Modular Buildings",s:"Littleton, MA",p:"med",w:"New England modular builder shipping units to commercial and educational projects — oversized loads on tight corridors.",ca:"Small-to-mid company; call and ask for the owner or ops manager directly.",ea:"Mention complex permitting and escort experience.",pts:["Complex permits in New England","Specialized blocking/bracing for modular units","School district project deliveries"]},
+  {n:"Pac-Van",i:"Modular Buildings",s:"Indianapolis, IN",p:"med",w:"National portable storage and modular office fleet. Frequent relocations from Midwest hubs — good fit for Bennett's Central-Southeast corridors.",ca:"National accounts team or local branch manager.",ea:"Lead with coverage map and fleet size.",pts:["Storage container relocations","Portable office complex moves","High-volume repeat freight"]},
+  {n:"NCI Building Systems",i:"Modular Buildings",s:"Houston, TX",p:"high",w:"Manufactures metal buildings and modular structures — ships large building components and assembled modules nationwide.",ca:"Ask for director of logistics or outbound shipping.",ea:"Steel building component transport expertise.",pts:["Pre-engineered steel building kits","Oversized wall panels and roof sections","Time-critical job-site deliveries"]},
+  {n:"Vanguard Modular Building Systems",i:"Modular Buildings",s:"Berwyn, PA",p:"med",w:"Large national modular building company — commercial and education projects generate consistent oversized freight along the East Coast.",ca:"Operations manager or fleet logistics.",ea:"East Coast modular building transport.",pts:["Commercial modular unit moves","Education campus relocations","East Coast permitting experience"]},
+  {n:"GreenField Solutions",i:"Modular Buildings",s:"Dallas, TX",p:"med",w:"Modular container-based structures for retail and commercial; growing fast in Texas and the South.",ca:"Small company — call the owner directly.",ea:"Reference Texas intrastate heavy haul expertise.",pts:["Container-based module transport","Texas and Gulf Coast delivery","Growing fleet needs consistent carrier"]},
+
+  // OIL & GAS
+  {n:"Exterran Holdings",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Manufactures and rents large gas compression and processing equipment — compressor packages frequently weigh 80k–300k lbs.",ca:"Ask for the logistics or equipment relocation manager.",ea:"Lead with compressor transport case studies.",pts:["Compressor package transport","Nationwide oilfield moves","Multi-axle specialized equipment"]},
+  {n:"Archrock",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Largest US compression fleet operator — constant redeployment of large compressor units between Permian, Haynesville, Marcellus.",ca:"Fleet logistics coordinator or operations manager.",ea:"Permian and Haynesville Basin lane experience.",pts:["Compressor unit redeployment","Basin-to-basin moves","Time-sensitive production support moves"]},
+  {n:"NOV (National Oilwell Varco)",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Largest oilfield equipment manufacturer — drillbits, BOPs, derricks, mud systems all require specialized heavy transport.",ca:"Supply chain or logistics manager in the manufacturing division.",ea:"Highlight range of oilfield heavy equipment moved.",pts:["Derrick and mast transport","BOP stack shipping","Rig component oversized loads"]},
+  {n:"TechnipFMC",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Subsea and surface wellhead systems — large manifolds and trees require flatbed/specialized moves from fabrication shops to docks.",ca:"Project logistics coordinator.",ea:"Fabrication-to-dock subsea equipment moves.",pts:["Subsea tree and manifold transport","Heavy lift interface with port cranes","Gulf Coast dock deliveries"]},
+  {n:"ProPetro Holding",i:"Oil & Gas",s:"Midland, TX",p:"high",w:"Major Permian Basin frac service company — constant movement of large frac pump trailers, blender units, and manifold equipment between pad sites.",ca:"Call the equipment logistics or fleet coordinator in Midland.",ea:"Lead with Permian Basin specialization and frac equipment experience.",pts:["Frac pump trailer moves","Blender and hydration unit transport","Permian pad-to-pad fleet relocation"]},
+  {n:"SPM Oil & Gas (Weir)",i:"Oil & Gas",s:"Fort Worth, TX",p:"high",w:"World's leading frac pump and wellhead equipment manufacturer — ships large hydraulic fracturing pumps (30–60 tons each) from TX factories.",ca:"Outbound logistics manager at Fort Worth facility.",ea:"Frac pump manufacturer — oilfield equipment transport expertise.",pts:["Hydraulic frac pump transport","Wellhead component delivery","Factory-to-oilfield logistics"]},
+  {n:"Baker Hughes TPS",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Baker Hughes Turbomachinery — ships large gas compressor trains and turbines (100–500 tons) to LNG plants, refineries, and gas processing facilities.",ca:"Logistics manager for the Turbomachinery and Process Solutions division.",ea:"Turbomachinery manufacturer — extreme heavy haul gas compressor trains.",pts:["Gas compressor train transport","LNG plant equipment delivery","Large turbine component moves"]},
+  {n:"Flowserve Corporation",i:"Oil & Gas",s:"Irving, TX",p:"med",w:"Industrial pump and valve manufacturer with TX HQ — ships large centrifugal pumps, valve assemblies, and pump skids to refineries and petrochemical plants.",ca:"Supply chain manager at Irving headquarters.",ea:"Industrial pump and valve manufacturer — large skid transport.",pts:["Large industrial pump skid transport","Refinery equipment delivery","Petrochemical plant project logistics"]},
+  {n:"Cameron International (SLB)",i:"Oil & Gas",s:"Houston, TX",p:"high",w:"Schlumberger's wellhead and pressure control division — ships large wellhead trees, BOP stacks, and valve systems from Houston facilities to oilfields worldwide.",ca:"Logistics manager for the Cameron product line or surface systems division.",ea:"Wellhead and BOP manufacturer — oilfield specialized transport.",pts:["BOP stack and wellhead tree transport","Surface equipment facility-to-field moves","Gulf Coast and offshore support logistics"]},
+  {n:"Forum Energy Technologies",i:"Oil & Gas",s:"Houston, TX",p:"med",w:"Makes downhole tools and subsea equipment — large reel and spool shipments from fabrication facilities.",ca:"Supply chain or plant logistics.",ea:"Fabrication-to-yard equipment transport.",pts:["Large reel and spool loads","Subsea equipment transport","Gulf Coast yard deliveries"]},
+  {n:"Benchmark Energy Services",i:"Oil & Gas",s:"Midland, TX",p:"med",w:"Regional oilfield services company in Permian — equipment relocation between well pads on tight schedules.",ca:"Operations manager.",ea:"Permian Basin short-haul specialized moves.",pts:["Pad-to-pad equipment moves","Oversized frac equipment","Tight scheduling in active basin"]},
+
+  // AGRICULTURAL EQUIPMENT
+  {n:"AGCO Corporation",i:"Agricultural Equipment",s:"Duluth, GA",p:"high",w:"Fendt, Massey Ferguson, Challenger tractors and combines ship from factories via heavy haul. AGCO is headquartered in GA — prime Bennett territory.",ca:"Outbound logistics at Hesston KS or Jackson MN plants.",ea:"Farm equipment manufacturer relationship — mention Case CNH experience.",pts:["Large tractor and combine transport","Factory-dealer and dealer-dealer moves","Southeast distribution advantage"]},
+  {n:"CNH Industrial (Case IH / New Holland)",i:"Agricultural Equipment",s:"Racine, WI",p:"high",w:"One of the world's largest ag equipment OEMs — Case IH and New Holland tractors and combines ship from multiple US factories with billions in annual freight.",ca:"Transportation director at the Racine or Burlington, IA plants.",ea:"Case IH/New Holland OEM — comparable to AGCO transport program.",pts:["Large tractor and combine transport","Factory-to-dealer delivery programs","High-volume repeat freight potential"]},
+  {n:"Vermeer Corporation",i:"Agricultural Equipment",s:"Pella, IA",p:"high",w:"Manufactures industrial and ag equipment including large tree spades, horizontal directional drills, round balers, and stump grinders — all require heavy haul.",ca:"Outbound logistics at the Pella, IA manufacturing campus.",ea:"Iowa equipment manufacturer — wide range of oversized industrial and ag equipment.",pts:["Large tree spade transport","Horizontal directional drill moves","Industrial baler and stump grinder shipping"]},
+  {n:"Claas of America",i:"Agricultural Equipment",s:"Omaha, NE",p:"med",w:"German manufacturer with US import hub — ships Lexion combines (some of the world's largest) to dealers nationwide.",ca:"US logistics or dealer delivery manager.",ea:"Large-scale combine transport.",pts:["Mega combine transport","Port-to-dealer deliveries","Oversized agricultural machinery"]},
+  {n:"Kinze Manufacturing",i:"Agricultural Equipment",s:"Williamsburg, IA",p:"med",w:"Planter and grain cart manufacturer — wide planter wings and large grain carts are classic heavy haul.",ca:"Plant shipping supervisor.",ea:"Agricultural implement transport from Midwest factories.",pts:["Wide planter transport (40ft+)","Large grain cart moves","Dealer delivery programs"]},
+  {n:"Great Plains Manufacturing",i:"Agricultural Equipment",s:"Salina, KS",p:"med",w:"Tillage and seeding equipment — large drills and vertical tillage machines ship to dealers across the Great Plains and South.",ca:"Shipping/logistics at the Salina plant.",ea:"Large implement factory direct to dealer.",pts:["Drill and tillage machine transport","Factory-direct dealer delivery","Texas and Southeast corridor"]},
+  {n:"Hagie Manufacturing",i:"Agricultural Equipment",s:"Clarion, IA",p:"med",w:"Manufactures large self-propelled sprayers — wide booms and tall high-clearance sprayers are very oversized loads on the highway.",ca:"Plant logistics at Clarion, IA.",ea:"High-clearance sprayer manufacturer — oversized ag equipment from IA.",pts:["Self-propelled sprayer transport","Wide boom loads","Iowa factory distribution"]},
+  {n:"Kuhn North America",i:"Agricultural Equipment",s:"Brodhead, WI",p:"med",w:"French ag equipment with US manufacturing — hay equipment, plows, and large tillers for dealer distribution throughout North America.",ca:"Plant logistics or sales at Brodhead, WI.",ea:"European ag OEM with US plant — implement dealer distribution.",pts:["Large hay equipment transport","Wide plow and tillage moves","Midwest factory dealer distribution"]},
+  {n:"Miller Industries",i:"Agricultural Equipment",s:"Ooltewah, TN",p:"high",w:"Largest US towing and recovery equipment manufacturer, located in TN — heavy-duty wrecker bodies and towing equipment shipped from SE location.",ca:"Outbound logistics at Ooltewah, TN plant.",ea:"Tennessee manufacturer — heavy-duty wrecker and towing equipment transport.",pts:["Heavy-duty wrecker body transport","Towing equipment manufacturer moves","Tennessee to national dealer distribution"]},
+
+  // CONSTRUCTION EQUIPMENT
+  {n:"Volvo Construction Equipment (NA)",i:"Construction Equipment",s:"Shippensburg, PA",p:"high",w:"Major CE manufacturer with NA headquarters — ships excavators, wheel loaders, articulated haulers from East Coast plants and ports.",ca:"Outbound logistics manager at the Shippensburg plant.",ea:"Large construction equipment factory transport.",pts:["Articulated dump truck transport","Large excavator moves","Factory-to-dealer oversized loads"]},
+  {n:"Doosan Bobcat",i:"Construction Equipment",s:"West Fargo, ND",p:"high",w:"Bobcat parent company ships compact and full-size equipment from ND headquarters — large excavators and loaders on permit loads.",ca:"Transportation/logistics manager in West Fargo.",ea:"Construction equipment manufacturer.",pts:["Large utility excavators","Compact-to-full-size equipment fleet moves","Factory-dealer distribution"]},
+  {n:"Hyundai Construction Equipment",i:"Construction Equipment",s:"Norcross, GA",p:"high",w:"Korean CE manufacturer with US HQ in Norcross, GA — prime Bennett territory for shipping excavators and wheel loaders to dealers across the Southeast.",ca:"Logistics or dealer delivery manager at Norcross.",ea:"Korean CE OEM with Georgia HQ — prime SE heavy equipment opportunity.",pts:["Excavator transport from GA hub","Southeast dealer delivery network","Wheel loader and compactor moves"]},
+  {n:"SANY America",i:"Construction Equipment",s:"Peachtree City, GA",p:"high",w:"Chinese equipment giant with US manufacturing in Peachtree City, GA — straight into Bennett's backyard. Cranes, excavators, and concrete equipment manufactured on-site.",ca:"Plant logistics manager at the Peachtree City manufacturing facility.",ea:"Georgia-based equipment manufacturer — ideal Bennett lane for SANY's US production.",pts:["Georgia-manufactured crane transport","Excavator and concrete pump moves","Local SE dealer delivery"]},
+  {n:"JLG Industries (Oshkosh)",i:"Construction Equipment",s:"McConnellsburg, PA",p:"high",w:"World's leading aerial work platform manufacturer — boom lifts up to 185 feet tall are quintessential oversized loads shipped from PA factories.",ca:"Outbound logistics at McConnellsburg, PA plant.",ea:"Aerial work platform OEM — oversized boom lift transport.",pts:["Tall boom lift transport","Scissor lift fleet moves","Factory-to-dealer distribution"]},
+  {n:"Genie Industries (Terex AWP)",i:"Construction Equipment",s:"Redmond, WA",p:"med",w:"AWP division of Terex — manufactures tall telescopic and articulating boom lifts. Pacific Northwest factory with national dealer delivery.",ca:"Outbound logistics at Redmond, WA.",ea:"Aerial work platform manufacturer — oversized boom lift transport from WA.",pts:["Telescopic boom lift moves","National dealer distribution","Oversized AWP loads"]},
+  {n:"Altec Industries",i:"Construction Equipment",s:"Birmingham, AL",p:"high",w:"Manufactures bucket trucks and derrick diggers — large aerial work equipment ships from Birmingham. Bennett's backyard.",ca:"Outbound logistics at Birmingham plant.",ea:"Birmingham manufacturer — perfect Bennett territory for SE and national delivery.",pts:["Bucket truck transport","Derrick digger moves","Factory-to-utility delivery"]},
+  {n:"Liebherr USA Construction",i:"Construction Equipment",s:"Newport News, VA",p:"high",w:"German heavy equipment giant with major US presence — manufactures and distributes large excavators, wheel loaders, and cranes from Newport News facility.",ca:"Logistics manager at the Newport News distribution center.",ea:"German equipment OEM with East Coast hub — wide range of heavy equipment.",pts:["Large excavator and wheel loader transport","Port-to-dealer equipment delivery","Tower and mobile crane component moves"]},
+  {n:"Hitachi Construction Machinery",i:"Construction Equipment",s:"Twinsburg, OH",p:"high",w:"Japanese CE giant with US distribution in OH — ships large excavators and mining class machines to customers and job sites nationally.",ca:"US logistics manager in Twinsburg.",ea:"Japanese construction equipment OEM — large excavator distribution.",pts:["Large class excavator transport","OH to national distribution","Mining and construction machine delivery"]},
+  {n:"TNT Equipment",i:"Construction Equipment",s:"Houston, TX",p:"med",w:"Heavy construction equipment dealer — constant dealer-to-dealer and customer delivery of large iron.",ca:"Transportation or sales coordinator.",ea:"Equipment dealer — recurring delivery transport.",pts:["Large excavator and dozer transport","Dealer-to-customer delivery","TX and Gulf Coast lanes"]},
+
+  // CRANE & LIFTING
+  {n:"Manitowoc Cranes",i:"Crane & Lifting",s:"Manitowoc, WI",p:"high",w:"One of the world's largest crane manufacturers — individual crane sections can be 100k+ lbs and require multi-axle specialized trailers.",ca:"Factory logistics manager or outbound shipping.",ea:"Crane component transport — specialized heavy haul core competency.",pts:["Boom sections and counterweights","Multi-piece crane shipments","Crane assembly site deliveries"]},
+  {n:"Link-Belt Cranes",i:"Crane & Lifting",s:"Lexington, KY",p:"high",w:"Factory in KY manufactures crawler and lattice cranes — heavy components shipped to job sites and dealers nationwide. Central to Bennett's lanes.",ca:"Outbound shipping at the Lexington plant.",ea:"Crane component KY factory transport.",pts:["Crawler crane base transport","Lattice boom sections","Southeast and Midwest delivery"]},
+  {n:"Tadano Mantis",i:"Crane & Lifting",s:"Georgetown, SC",p:"high",w:"Crane manufacturer in SC — all-terrain and rough terrain cranes are heavy haul staples. Excellent SE location for Bennett.",ca:"Plant logistics or shipping supervisor in Georgetown.",ea:"South Carolina crane manufacturer — strong regional lane fit.",pts:["Rough terrain crane transport","SC factory-direct moves","Southeast and Mid-Atlantic lanes"]},
+  {n:"Liebherr (US Cranes)",i:"Crane & Lifting",s:"Newport News, VA",p:"high",w:"German crane giant with US operations and port — ships tower, mobile, and crawler cranes from Newport News. Major heavy haul customer.",ca:"US logistics manager at Newport News facility.",ea:"Premium crane manufacturer — high-value specialized moves.",pts:["Tower crane component transport","Port-to-job-site moves","Precision high-value equipment"]},
+  {n:"Barnhart Crane & Rigging",i:"Crane & Lifting",s:"Memphis, TN",p:"high",w:"US leader in super heavy lift — moves their specialized lifting equipment (strand jacks, gantry systems) between major industrial projects nationwide.",ca:"Equipment fleet logistics manager.",ea:"Super heavy lift contractor — specialized rigging and transport equipment moves.",pts:["Strand jack and gantry transport","Specialized lifting equipment relocation","Project-to-project heavy equipment moves"]},
+  {n:"ALL Crane Rental",i:"Crane & Lifting",s:"Independence, OH",p:"high",w:"Largest US crane rental family — 40+ locations across North America constantly relocating owned crawler, tower, and mobile cranes. Very high repeat freight volume.",ca:"National fleet logistics or regional operations manager.",ea:"National crane rental fleet — high-volume crane relocation opportunity.",pts:["Crawler crane fleet relocation","Tower crane component transport","Branch-to-branch and project moves"]},
+  {n:"Mammoet USA",i:"Crane & Lifting",s:"Houston, TX",p:"high",w:"World leader in heavy lift and transport — moves owned specialized lifting equipment (SPMTs, strand jacks, gantry cranes) between mega-projects nationally.",ca:"Equipment fleet logistics manager.",ea:"Super heavy lift contractor — SPMT and gantry fleet transport.",pts:["SPMT and specialized trailer moves","Strand jack and gantry relocation","Petrochemical and power plant projects"]},
+  {n:"TNT Crane & Rigging",i:"Crane & Lifting",s:"Houston, TX",p:"med",w:"Large US crane rental company — moves owned crane fleet between job sites constantly. Repeat freight potential.",ca:"Fleet relocation or operations coordinator.",ea:"Crane fleet relocation — recurring move opportunity.",pts:["Owned crane fleet relocation","Job-to-job crane moves","Emergency and scheduled relocations"]},
+  {n:"Maxim Crane Works",i:"Crane & Lifting",s:"Pittsburgh, PA",p:"med",w:"National crane rental company with 40+ branches — relocates cranes between branches and to job sites.",ca:"National logistics or branch operations.",ea:"National crane rental — fleet move opportunity.",pts:["Branch-to-branch crane relocation","Large and small crane variety","Time-sensitive job starts"]},
+  {n:"Terex Cranes",i:"Crane & Lifting",s:"Westport, CT",p:"high",w:"Global crane manufacturer — Terex ships crawler cranes, tower cranes, and mobile cranes from US plants.",ca:"Crane division logistics.",ea:"Crane manufacturer — full range of crane transport experience.",pts:["Crawler and tower crane moves","Crane component multi-piece loads","Dealer and job site delivery"]},
+
+  // MINING EQUIPMENT
+  {n:"Komatsu Mining (Joy Global)",i:"Mining Equipment",s:"Milwaukee, WI",p:"high",w:"World's largest mining equipment manufacturer — longwall shearers, roof supports, and shuttle cars require extreme heavy haul.",ca:"Outbound logistics or mining division transportation.",ea:"Extreme heavy haul mining equipment.",pts:["Longwall mining system components","Roof support transport (50–100 tons each)","Underground mining equipment moves"]},
+  {n:"P&H Mining Equipment",i:"Mining Equipment",s:"Milwaukee, WI",p:"high",w:"Manufactures massive electric mining shovels and draglines — individual dipper handles or boom sections can weigh over 100 tons. Extreme heavy haul required.",ca:"Plant logistics manager at Milwaukee facility.",ea:"Mining shovel manufacturer — some of the heaviest loads in the industry.",pts:["Electric mining shovel components","Dragline boom and bucket moves","Extreme heavy haul (100–300 tons per piece)"]},
+  {n:"Epiroc (Atlas Copco Mining)",i:"Mining Equipment",s:"Garland, TX",p:"high",w:"Swedish mining equipment giant with US HQ in TX — drill rigs, loaders, and rock drills are regular heavy haul freight.",ca:"Logistics manager at Garland, TX facility.",ea:"Mining equipment manufacturer — TX base, national delivery.",pts:["Rock drill and drill rig transport","Underground loader moves","Mine site deliveries"]},
+  {n:"Metso Outotec (US)",i:"Mining Equipment",s:"York, PA",p:"high",w:"Crushing and screening equipment for mining — large primary crushers can weigh 200–400 tons. Specialized multi-axle loads.",ca:"Plant logistics at the York, PA facility.",ea:"Crusher and mill transport — extreme heavy haul niche.",pts:["Primary crusher component transport","Ball mill shell moves","Mining site assembly deliveries"]},
+  {n:"Sandvik Mining (US)",i:"Mining Equipment",s:"Smyrna, GA",p:"high",w:"Swedish equipment giant with US operations in GA — drill rigs and mining trucks manufactured and distributed from US facilities.",ca:"Logistics at Smyrna, GA office.",ea:"Swedish mining OEM with GA presence — strong lane fit.",pts:["Drill rig transport","Mining truck and loader moves","Southeast distribution advantage"]},
+  {n:"Wirtgen America",i:"Mining Equipment",s:"Nashville, TN",p:"high",w:"Road-building and surface mining equipment — large milling machines and surface miners are heavy haul regulars. TN base is ideal for Bennett.",ca:"Outbound logistics in Nashville.",ea:"Tennessee-based heavy equipment manufacturer — prime Bennett territory.",pts:["Surface miner and milling machine transport","Dealer delivery programs","Central-Southeast lane coverage"]},
+  {n:"Weir Minerals (US)",i:"Mining Equipment",s:"Salt Lake City, UT",p:"med",w:"Manufactures large slurry pumps and mining equipment — pump castings and mill components are heavy and require specialized transport.",ca:"US logistics or plant manager.",ea:"Mining slurry pump manufacturer — large castings and pump transport.",pts:["Large pump casting transport","Mill component moves","Mine site equipment delivery"]},
+
+  // WIND ENERGY
+  {n:"Vestas Wind Systems (US)",i:"Wind Energy",s:"Windsor, CO",p:"high",w:"World's leading wind turbine maker with US manufacturing — tower sections, nacelles, and blades are quintessential heavy haul.",ca:"Supply chain or logistics at the Colorado facility.",ea:"Wind turbine OEM heavy haul — tower, nacelle, blade transport.",pts:["Tower section transport (50+ tons)","Nacelle moves (100–300 tons)","Blade transport (extremely oversized)"]},
+  {n:"GE Vernova (Wind Division)",i:"Wind Energy",s:"Schenectady, NY",p:"high",w:"GE's wind turbine unit — manufactures towers and nacelles at US plants with constant delivery to wind farm sites.",ca:"Supply chain logistics at Pensacola, FL or Schenectady, NY plants.",ea:"GE Wind turbine component logistics.",pts:["Turbine component delivery to wind farms","Tower and nacelle specialty transport","Long-haul blade and hub moves"]},
+  {n:"Trinity Structural Towers",i:"Wind Energy",s:"Dallas, TX",p:"high",w:"Largest US wind tower manufacturer with plants in TX, IA, and CO — massive steel towers exit plants and need heavy haul to wind farms.",ca:"Logistics or plant shipping supervisor.",ea:"US wind tower manufacturer — TX plant is Bennett's backyard.",pts:["Steel tower section transport","High-volume tower delivery programs","Regular consistent lane business"]},
+  {n:"Siemens Gamesa (US)",i:"Wind Energy",s:"Orlando, FL",p:"high",w:"One of the world's largest wind turbine manufacturers — nacelles, towers, and blades move from ports and factories to wind farms nationwide.",ca:"US supply chain or logistics manager.",ea:"Wind turbine OEM — nacelle, blade, and tower logistics.",pts:["Nacelle transport (up to 400 tons)","Blade and hub moves","Tower section delivery to wind farms"]},
+  {n:"CS Wind (US)",i:"Wind Energy",s:"Pueblo, CO",p:"med",w:"Korean wind tower manufacturer with US plant — large tower sections from Pueblo to Western wind farms.",ca:"Plant shipping or logistics manager.",ea:"Wind tower manufacturer with CO plant.",pts:["Tower section moves from Pueblo","Western wind farm deliveries","Large-volume production runs"]},
+  {n:"Enercon (US Projects)",i:"Wind Energy",s:"Various",p:"med",w:"German wind OEM expanding in the US — gearless turbine technology with very heavy nacelles (some 300+ tons).",ca:"US project manager or logistics.",ea:"German wind OEM entering US market — gearless nacelles are extremely heavy.",pts:["Gearless nacelle transport (300+ tons)","Specialized multi-axle trailer required","Early-engagement on new projects"]},
+
+  // VAULTS & SECURITY
+  {n:"American Security Products (AMSEC)",i:"Vaults & Security",s:"Fontana, CA",p:"high",w:"One of the largest US safe and vault manufacturers — bank vault doors, modular vaults, and ATM safes all require specialized heavy transport.",ca:"Outbound logistics manager at the Fontana plant.",ea:"Vault manufacturer — comparable to USA Vault experience.",pts:["Bank vault door transport","Modular vault room components","Heavy ATM safe moves"]},
+  {n:"Diebold Nixdorf",i:"Vaults & Security",s:"North Canton, OH",p:"high",w:"Global ATM and banking security manufacturer — ATMs and vault equipment ship from OH headquarters to banks nationwide.",ca:"Transportation/logistics manager.",ea:"ATM and vault manufacturer — similar to USA Vault freight profile.",pts:["ATM transport (2–10 tons each)","Vault equipment delivery to banks","High-security freight handling protocols"]},
+  {n:"Hamilton Products Group",i:"Vaults & Security",s:"Hamilton, OH",p:"high",w:"One of America's oldest vault manufacturers — large bank vault systems and modular vaults for government and financial sector.",ca:"Sales or logistics manager.",ea:"Historic vault manufacturer — government and bank sector vault installs.",pts:["Full bank vault system moves","Government facility vault delivery","Oversized vault door transport"]},
+  {n:"Cennox Group",i:"Vaults & Security",s:"Charlotte, NC",p:"med",w:"Bank branch construction and vault installation — coordinates relocation and installation of vault systems at bank branch builds.",ca:"Project coordinator for bank branch construction.",ea:"Bank construction firm needing vault and ATM transport.",pts:["Branch construction vault delivery","ATM deployment logistics","Southeast bank branch projects"]},
+  {n:"Vault Pro USA",i:"Vaults & Security",s:"Dallas, TX",p:"med",w:"Vault room builder for residential and commercial — ships prefab vault room components to install sites across the South.",ca:"Owner or logistics coordinator.",ea:"Modular vault room transport — TX-based, SE delivery.",pts:["Prefab vault room panels","Residential and commercial vault rooms","Texas and Southeast delivery"]},
+
+  // ELECTRICAL & TRANSFORMERS
+  {n:"SPX Transformer Solutions",i:"Electrical & Transformers",s:"Waukesha, WI",p:"high",w:"Large power transformer manufacturer — utility transformers can weigh 100–600 tons, some of the heaviest loads in the industry.",ca:"Logistics manager at the Waukesha plant.",ea:"Power transformer manufacturer — extreme heavy haul (100–600 tons).",pts:["Large utility transformer transport","Multi-axle specialized rigging required","Utility company delivery coordination"]},
+  {n:"WEG Electric (US)",i:"Electrical & Transformers",s:"Duluth, GA",p:"high",w:"Brazilian motor/transformer giant with US distribution in GA — large motors and transformers for industrial customers.",ca:"US logistics at Duluth, GA.",ea:"Large motor and transformer transport — Georgia base.",pts:["Industrial motor transport","Transformer delivery to plants","SE distribution from Duluth hub"]},
+  {n:"Hyundai Electric America",i:"Electrical & Transformers",s:"Montgomery, AL",p:"high",w:"Korean transformer maker with AL factory — large power and distribution transformers. Alabama is prime Bennett territory.",ca:"Plant logistics manager in Montgomery.",ea:"Transformer manufacturer in Alabama — core Bennett territory.",pts:["Power transformer transport","Factory-to-substation delivery","Alabama and Southeast coverage"]},
+  {n:"Virginia Transformer",i:"Electrical & Transformers",s:"Roanoke, VA",p:"high",w:"Large transformer manufacturer in Virginia — utility and industrial transformers moving to power grid projects nationwide.",ca:"Plant logistics at Roanoke.",ea:"Virginia transformer manufacturer — East Coast and Southeast lanes.",pts:["Utility transformer transport","Grid modernization project deliveries","East Coast heavy haul lanes"]},
+  {n:"Howard Industries",i:"Electrical & Transformers",s:"Laurel, MS",p:"high",w:"One of America's largest distribution transformer manufacturers — located in MS, ships thousands of transformers per year. Perfect Bennett lane.",ca:"Outbound logistics at the Laurel plant.",ea:"MS transformer manufacturer — ideal Southeast lane for Bennett.",pts:["High-volume distribution transformer freight","Mississippi to Southeast delivery","Consistent volume business potential"]},
+  {n:"ABB Power Grids (US)",i:"Electrical & Transformers",s:"Cary, NC",p:"high",w:"Swiss engineering giant — large power transformers, substations, and switchgear from US plants require specialized heavy haul.",ca:"Supply chain or logistics director.",ea:"Premium engineering giant — large transformer and substation moves.",pts:["High-voltage transformer transport","Substation component delivery","Premium freight requiring specialized handling"]},
+  {n:"Siemens Energy (US)",i:"Electrical & Transformers",s:"Houston, TX",p:"high",w:"Siemens energy division makes large gas turbines, transformers, and power systems — US operations ship heavy turbine components to power plants.",ca:"US logistics for the Energy division.",ea:"Gas turbine and power system transport.",pts:["Large gas turbine component moves","Power transformer transport","Power plant equipment delivery"]},
+  {n:"Prolec GE (Xignux)",i:"Electrical & Transformers",s:"San Antonio, TX",p:"high",w:"One of the largest distribution transformer manufacturers in North America — ships thousands of large transformers annually from TX facilities.",ca:"Logistics or transportation manager at San Antonio.",ea:"High-volume distribution transformer manufacturer — Texas base.",pts:["Distribution transformer fleet transport","High-volume transformer delivery","Texas and Southeast corridor"]},
+  {n:"Eaton Power Systems",i:"Electrical & Transformers",s:"Pittsburgh, PA",p:"high",w:"Industrial switchgear, transformers, and UPS systems from Eaton plants — large distribution transformers and power centers shipped to industrial customers.",ca:"Supply chain logistics at Eaton Power Quality or distribution.",ea:"Large industrial switchgear and transformer transport.",pts:["Power distribution transformer moves","Large switchgear transport","Industrial facility delivery"]},
+  {n:"Powell Industries",i:"Electrical & Transformers",s:"Houston, TX",p:"med",w:"Custom electrical switchgear and controls for oil & gas and industrial markets — ships large custom switchgear assemblies from Houston factory.",ca:"Shipping or logistics supervisor.",ea:"Custom switchgear manufacturer — Houston-based, heavy industrial freight.",pts:["Custom switchgear transport","Refinery and plant equipment delivery","Oversized electrical assemblies"]},
+
+  // PREFAB STEEL BUILDINGS
+  {n:"Nucor Building Systems",i:"Prefab Steel Buildings",s:"Swansea, SC",p:"high",w:"Leading prefab metal building manufacturer with SC plant — large building components and trusses are permit loads. Southeast lane ideal.",ca:"Plant shipping coordinator.",ea:"Prefab steel building manufacturer — SC plant to job sites.",pts:["Steel building truss transport","Long-span frame components","Job-site delivery coordination"]},
+  {n:"BlueScope Buildings (US)",i:"Prefab Steel Buildings",s:"Anniston, AL",p:"high",w:"Australian steel building company with major US plant in Alabama — ships large building components nationwide.",ca:"Outbound logistics at Anniston, AL plant.",ea:"Alabama steel building manufacturer — excellent Bennett territory.",pts:["Large building frame transport","AL plant to nationwide job sites","Multi-truck building kit deliveries"]},
+  {n:"Varco-Pruden Buildings",i:"Prefab Steel Buildings",s:"Memphis, TN",p:"high",w:"Mid-South prefab building manufacturer — Memphis is perfectly situated for Bennett's Southeast and Central corridors.",ca:"Plant logistics at Memphis.",ea:"Memphis-based building manufacturer — ideal lane geography.",pts:["Steel building component transport","Memphis to Southeast delivery","Volume contractor relationships"]},
+  {n:"Robertson-Ceco Corp",i:"Prefab Steel Buildings",s:"Exton, PA",p:"med",w:"Major metal building manufacturer — ships large trusses and frames for commercial and industrial buildings.",ca:"Logistics or plant manager.",ea:"Metal building manufacturer — PA and Southeast plants.",pts:["Commercial building component moves","Oversized truss transport","Nationwide job-site delivery"]},
+  {n:"Chief Buildings",i:"Prefab Steel Buildings",s:"Kearney, NE",p:"med",w:"Large Midwest prefab building manufacturer — ships building components to commercial and agricultural customers.",ca:"Logistics or sales for the buildings division.",ea:"Midwest building manufacturer — Central-to-South lanes.",pts:["Ag and commercial building transport","Midwest origin, Southeast delivery","Volume component shipments"]},
+
+  // MILITARY & DEFENSE
+  {n:"AM General",i:"Military & Defense",s:"South Bend, IN",p:"high",w:"Manufactures HMMWV (Humvees) and military trucks — vehicles move by heavy haul from South Bend to military bases and ports.",ca:"Government contracts logistics manager.",ea:"Military vehicle manufacturer — comparable to Armag experience.",pts:["Military vehicle transport","Base-to-port delivery","High-security freight handling"]},
+  {n:"Oshkosh Defense",i:"Military & Defense",s:"Oshkosh, WI",p:"high",w:"Manufactures JLTV, HEMTT, and PLS military trucks — very heavy military vehicles requiring specialized transport.",ca:"Outbound logistics at Oshkosh, WI plant.",ea:"Military truck manufacturer — armored vehicle transport experience.",pts:["JLTV and HEMTT transport","Factory-to-base delivery","High-security armored vehicle moves"]},
+  {n:"General Dynamics Land Systems",i:"Military & Defense",s:"Sterling Heights, MI",p:"high",w:"Manufactures M1 Abrams tanks and Stryker armored vehicles — each Abrams weighs 68 tons. Factory-to-base delivery is one of the most demanding heavy haul scenarios.",ca:"Defense logistics or government contracts transportation manager.",ea:"Main battle tank manufacturer — M1 Abrams and Stryker transport.",pts:["M1 Abrams tank transport (68 tons each)","Stryker armored vehicle moves","Factory-to-military base delivery"]},
+  {n:"BAE Systems Combat Vehicles",i:"Military & Defense",s:"York, PA",p:"high",w:"Manufactures Bradley IFVs, Paladin Howitzers, and armored vehicles in PA — heavy tracked and wheeled military platforms require specialized heavy haul.",ca:"Defense logistics coordinator at York, PA.",ea:"Bradley and Paladin manufacturer — armored combat vehicle transport.",pts:["Bradley IFV transport","Paladin howitzer moves","Armored vehicle delivery to military bases"]},
+  {n:"Force Protection Industries",i:"Armored Vehicles",s:"Ladson, SC",p:"high",w:"Manufactures Cougar and Cheetah MRAPs — heavy armored vehicles exit SC plant and need specialized heavy haul to bases.",ca:"Plant logistics at Ladson, SC.",ea:"MRAP manufacturer in SC — armored vehicle transport, Bennett SE strength.",pts:["MRAP armored vehicle transport","SC to military base delivery","Armored vehicle specialized tie-down requirements"]},
+
+  // DATA CENTERS & TELECOM
+  {n:"Schneider Electric (Data Center)",i:"Data Centers & Telecom",s:"Nashville, TN",p:"high",w:"Data center power and cooling systems from TN — Nashville headquarters ships large modular data center units nationally.",ca:"Supply chain logistics manager.",ea:"Data center infrastructure manufacturer — Nashville base, SE advantage.",pts:["Modular data center transport","Large power distribution units","Time-sensitive data center build schedules"]},
+  {n:"Vertiv Group",i:"Data Centers & Telecom",s:"Columbus, OH",p:"med",w:"Makes data center cooling and power systems — large UPS systems and cooling units are heavy haul freight.",ca:"Supply chain or logistics manager.",ea:"Data center infrastructure — large UPS and cooling system transport.",pts:["Large UPS and generator transport","Cooling unit delivery to data centers","High-value equipment careful handling"]},
+  {n:"QTS Data Centers",i:"Data Centers & Telecom",s:"Richmond, VA",p:"med",w:"Data center developer — ships massive generators, UPS systems, and cooling equipment to new facilities under construction.",ca:"Construction project logistics coordinator.",ea:"Data center developer — generator and cooling equipment project freight.",pts:["Generator and UPS delivery to build sites","Cooling tower moves","Time-critical construction support"]},
+
+  // WATER TREATMENT
+  {n:"Evoqua Water Technologies",i:"Water Treatment",s:"Pittsburgh, PA",p:"med",w:"Large water treatment equipment manufacturer — filtration systems, clarifiers, and large tanks are heavy and oversized.",ca:"Project or plant logistics.",ea:"Water treatment equipment transport.",pts:["Clarifier and filtration system moves","Large tank transport","Municipal water project deliveries"]},
+  {n:"Suez Water Technologies",i:"Water Treatment",s:"Trevose, PA",p:"med",w:"Large water/wastewater equipment — mobile treatment systems and large reactors ship from PA to project sites.",ca:"Supply chain or project logistics.",ea:"Water treatment equipment transport from PA.",pts:["Mobile water treatment plant moves","Large reactor vessel transport","Municipal project deliveries"]},
+
+  // INDUSTRIAL MACHINERY
+  {n:"Andritz Group (US)",i:"Industrial Machinery",s:"Alpharetta, GA",p:"high",w:"Austrian industrial machinery giant with US HQ in GA — paper, pulp, and hydropower equipment that regularly requires extreme heavy haul.",ca:"US logistics at Alpharetta, GA.",ea:"Industrial machinery manufacturer — Georgia base, heavy equipment transport.",pts:["Pulp mill and paper machine transport","Hydro turbine component moves","Large industrial press transport"]},
+  {n:"Chart Industries",i:"Industrial Machinery",s:"Ball Ground, GA",p:"high",w:"Industrial gas equipment manufacturer with GA headquarters — ships large cryogenic tanks, heat exchangers, and gas processing equipment.",ca:"Outbound logistics at Ball Ground, GA.",ea:"Georgia-based industrial equipment manufacturer — ideal Bennett lane.",pts:["Cryogenic tank transport","Large heat exchanger moves","Industrial gas processing equipment"]},
+  {n:"Schuler (US Presses)",i:"Industrial Machinery",s:"Canton, MI",p:"med",w:"German press manufacturer — automotive stamping presses can weigh 500–1000 tons. Some of the most extreme heavy haul loads.",ca:"US project logistics at Canton, MI.",ea:"Stamping press manufacturer — extreme heavy haul opportunity.",pts:["Stamping press moves (500–1000 tons)","Automotive plant delivery","Multi-axle specialized transport"]},
+  {n:"Fives Group (US)",i:"Industrial Machinery",s:"Middletown, OH",p:"med",w:"French industrial equipment maker with US operations — large industrial furnaces, rolling mills, and automation equipment.",ca:"US logistics manager.",ea:"Industrial process equipment — large furnace and mill transport.",pts:["Industrial furnace moves","Rolling mill equipment","Aerospace and automotive plant deliveries"]},
+  {n:"BrandSafway",i:"Industrial Machinery",s:"Kennesaw, GA",p:"med",w:"Industrial scaffolding and access solutions — large scaffolding system deliveries for power plant and industrial turnarounds.",ca:"Project logistics.",ea:"Industrial scaffolding — large system transport to turnaround sites.",pts:["Scaffolding system transport","Power plant turnaround support","Georgia base — SE delivery"]},
+  {n:"Alfa Laval (US)",i:"Industrial Machinery",s:"Richmond, VA",p:"med",w:"Swedish heat transfer and separation equipment giant with US operations — large heat exchangers and pressure vessels for industrial plants.",ca:"US supply chain or project logistics.",ea:"Heat exchanger and separation equipment transport.",pts:["Large heat exchanger moves","Industrial vessel transport","Refinery and plant deliveries"]},
+
+  // PRECAST CONCRETE (NEW)
+  {n:"Oldcastle Infrastructure",i:"Precast Concrete",s:"Atlanta, GA",p:"high",w:"One of the largest precast concrete manufacturers in North America — large vaults, bridge beams, and barriers are heavy oversized loads. Atlanta HQ is ideal for Bennett.",ca:"Distribution or logistics manager at the Atlanta headquarters.",ea:"Precast concrete giant with Atlanta HQ — prime SE heavy haul opportunity.",pts:["Precast bridge beam transport (50–80 tons)","Large vault and manhole delivery","Municipal infrastructure project logistics"]},
+  {n:"Forterra Inc",i:"Precast Concrete",s:"Irving, TX",p:"high",w:"Large precast concrete pipe and infrastructure products — ships heavy concrete pipe sections and vaults from Texas plants to infrastructure projects nationally.",ca:"Plant logistics or transportation manager.",ea:"Precast concrete pipe manufacturer — Texas base, heavy infrastructure loads.",pts:["Large concrete pipe transport","Precast vault and box culvert moves","Water and highway project deliveries"]},
+  {n:"Spancrete Group",i:"Precast Concrete",s:"Valders, WI",p:"med",w:"Prestressed precast concrete manufacturer — hollow-core slabs and prestressed beams for commercial and industrial buildings. Heavy and long loads from WI plants.",ca:"Plant logistics manager.",ea:"Prestressed precast manufacturer — long-span beam transport.",pts:["Prestressed concrete beam transport","Hollow-core slab delivery","Commercial building component moves"]},
+  {n:"Gate Precast Company",i:"Precast Concrete",s:"Kissimmee, FL",p:"med",w:"Architectural and structural precast concrete manufacturer with Southeast US plants — large precast facade panels and structural components require careful oversized transport.",ca:"Plant logistics manager.",ea:"Architectural precast manufacturer — SE US lanes, large panel transport.",pts:["Architectural precast panel moves","Structural precast component transport","Southeast plant distribution"]},
+  {n:"CRH Infrastructure Products",i:"Precast Concrete",s:"Dublin/Atlanta, GA",p:"high",w:"One of the largest concrete infrastructure product companies globally with many US plants — precast pipe, box culverts, and bridge components nationwide.",ca:"Regional logistics or plant manager.",ea:"Large precast infrastructure manufacturer — national plant network.",pts:["Bridge beam and box culvert transport","Large diameter precast pipe moves","Multi-plant volume freight potential"]},
+
+  // RAIL & TRANSPORTATION (NEW)
+  {n:"Trinity Industries",i:"Rail & Transportation",s:"Dallas, TX",p:"high",w:"One of the largest US rail car manufacturers and highway products companies — ships large rail car components and highway guardrail systems. TX HQ is ideal for Bennett.",ca:"Transportation or logistics manager at Dallas headquarters.",ea:"Rail car manufacturer — large rail component and highway product transport.",pts:["Rail car component moves","Highway guardrail and barrier transport","Large structural steel components"]},
+  {n:"Progress Rail (Caterpillar)",i:"Rail & Transportation",s:"Albertville, AL",p:"high",w:"Caterpillar's rail division — manufactures locomotive engines and rail maintenance equipment in Alabama. Perfect Bennett territory for rail equipment transport.",ca:"Plant logistics at Albertville, AL.",ea:"Alabama rail equipment manufacturer — ideal Bennett SE territory.",pts:["Locomotive component transport","Rail maintenance equipment moves","Alabama to national distribution"]},
+  {n:"FreightCar America",i:"Rail & Transportation",s:"Chicago, IL",p:"med",w:"Manufactures rail freight cars — large steel rail car components and assembled cars require specialized heavy haul from Chicago area plants.",ca:"Plant logistics or transportation manager.",ea:"Rail car manufacturer — large steel component transport.",pts:["Rail car component transport","Large steel assembly moves","Midwest origin delivery"]},
+  {n:"Wabtec Corporation",i:"Rail & Transportation",s:"Pittsburgh, PA",p:"med",w:"Rail equipment and components — locomotives, braking systems, and rail MRO equipment shipped from PA headquarters to railroads and transit authorities.",ca:"Supply chain or logistics manager.",ea:"Rail equipment supplier — large locomotive and rail component transport.",pts:["Locomotive component transport","Large rail equipment delivery","Transit authority project logistics"]},
+
+  // POWER GENERATION (NEW)
+  {n:"Aggreko",i:"Power Generation",s:"Sugar Land, TX",p:"high",w:"World's largest temporary power provider — massive generator sets and load banks constantly relocated between industrial sites, emergencies, and events nationwide.",ca:"Fleet logistics or equipment relocation manager.",ea:"Temporary power company — high-frequency large generator fleet relocation.",pts:["Large generator set transport (up to 2MW+)","Load bank and auxiliary equipment moves","Emergency and scheduled fleet relocation"]},
+  {n:"Cummins Power Generation",i:"Power Generation",s:"Fridley, MN",p:"high",w:"Large standby and prime power generators (500kW–3MW) ship from factories to data centers, hospitals, utilities, and industrial customers nationwide.",ca:"Outbound logistics at the Fridley, MN facility.",ea:"Large generator manufacturer — factory-to-site generator transport.",pts:["Large standby generator transport","Industrial generator delivery","Factory-direct utility and data center moves"]},
+  {n:"Caterpillar Electric Power",i:"Power Generation",s:"Atlanta, GA",p:"high",w:"Large industrial and utility generators from Cat distribution — GA hub is ideal for Bennett. Hospitals, data centers, and utilities receive large Cat gensets regularly.",ca:"Cat dealer or distribution logistics at Atlanta hub.",ea:"Cat generator distribution — Georgia base, SE and national delivery.",pts:["Large Cat generator set transport","Data center and hospital delivery","Utility project generator moves"]},
+  {n:"Kohler Power Systems",i:"Power Generation",s:"Kohler, WI",p:"high",w:"Large industrial generator sets from WI factory to utilities and industrial customers nationwide — Kohler Power ships regularly to the Southeast and Central US.",ca:"Outbound logistics at Kohler, WI.",ea:"Industrial generator manufacturer — factory-to-site transport.",pts:["Large industrial generator transport","Critical facility power delivery","Factory-to-utility project moves"]},
+  {n:"Wärtsilä Energy (US)",i:"Power Generation",s:"Houston, TX",p:"high",w:"Finnish power company with US ops — large flexible power plant engines on skids (3–20MW each) are some of the heaviest genset loads, shipped to remote power projects.",ca:"US logistics for the Energy Solutions division.",ea:"Large power plant engine manufacturer — extreme heavy genset skids.",pts:["Power plant engine skid transport","Remote power project delivery","Skid-mounted genset moves (100+ tons)"]},
+
+  // MARINE & SHIPBUILDING (NEW)
+  {n:"Huntington Ingalls Industries",i:"Marine & Shipbuilding",s:"Newport News, VA",p:"high",w:"Largest US shipbuilder — massive ship components, dry dock equipment, and ship sections move via specialized heavy transport. Newport News is a prime Bennett location.",ca:"Logistics or transportation manager at Newport News.",ea:"US shipbuilder — large ship component and equipment transport.",pts:["Large ship component transport","Dry dock equipment moves","Newport News to site heavy haul"]},
+  {n:"Austal USA",i:"Marine & Shipbuilding",s:"Mobile, AL",p:"high",w:"Australian shipbuilder with major US facility in Mobile, AL — prime Bennett territory for ship module and component transport. Builds Navy vessels with large module moves.",ca:"Plant logistics or transportation manager at Mobile.",ea:"Alabama shipbuilder — prime SE territory for ship module transport.",pts:["Ship module and component transport","Naval vessel component moves","Mobile, AL to site delivery"]},
+
+  // MATERIAL HANDLING (NEW)
+  {n:"Hyster-Yale Group",i:"Material Handling",s:"Cleveland, OH",p:"high",w:"Manufactures large Class V forklifts (up to 36 tons) that require specialized heavy haul from Ohio plants to customers nationwide — container handlers and big forklifts.",ca:"Outbound logistics at the Cleveland HQ.",ea:"Large forklift manufacturer — heavy-duty lift truck transport.",pts:["Class V forklift transport (up to 36 tons)","Container handler moves","Factory-to-customer distribution"]},
+  {n:"Taylor Machine Works",i:"Material Handling",s:"Louisville, MS",p:"high",w:"Manufactures heavy-duty forklifts and container handlers in Mississippi — right in Bennett's backyard. Ships to ports, rail yards, and industrial facilities nationwide.",ca:"Plant logistics at Louisville, MS.",ea:"Mississippi forklift manufacturer — SE advantage for Taylor heavy lift equipment.",pts:["Heavy-duty container handler transport","Large forklift moves","MS factory to port and industrial delivery"]},
+  {n:"Kalmar (Cargotec)",i:"Material Handling",s:"Ottawa, KS",p:"high",w:"Makes container handlers and reach stackers used in ports and rail yards — extremely heavy equipment (up to 50 tons) requiring specialized transport from KS factory.",ca:"Outbound logistics at Ottawa, KS.",ea:"Container handler manufacturer — port and rail yard equipment transport.",pts:["Reach stacker transport","Container handler moves (up to 50 tons)","Port and rail yard equipment delivery"]},
+
+  // FABRICATORS
+  {n:"NParrell Fabrication",i:"Fabricators",s:"Houston, TX",p:"high",w:"Heavy fabricator for industrial process equipment and structural steel — large fabricated modules require specialized heavy haul.",ca:"Ask for the plant shipping supervisor or fabrication logistics manager.",ea:"Lead with heavy steel fabrication and module transport expertise.",pts:["Large structural steel module shipments","Process equipment fabrication transport","Specialized permit and escort needs"]},
+  {n:"Turner Industries Group",i:"Fabricators",s:"Baton Rouge, LA",p:"high",w:"Large industrial contractor and fabricator — modular pipe racks, heat exchangers, and process modules from Gulf Coast fabrication yards are extreme heavy haul.",ca:"Fabrication yard logistics or transportation manager.",ea:"Gulf Coast heavy fabrication — modular process equipment transport.",pts:["Modular pipe rack transport","Heat exchanger moves","Gulf Coast to plant-site delivery"]},
+  {n:"Magnum Fabricators",i:"Fabricators",s:"Cleveland, OH",p:"med",w:"Custom steel fabricator for energy, industrial, and construction clients — regularly ships oversized fabricated assemblies.",ca:"Operations manager or logistics coordinator.",ea:"Mention custom steel assembly transport and plant distribution.",pts:["Oversized fabricated assembly moves","Heavy steel structure shipments","Plant-to-project site delivery"]},
+  {n:"Matrix Service Company",i:"Fabricators",s:"Tulsa, OK",p:"high",w:"Industrial services and fabrication for storage tanks, process equipment — ships large steel modules and tank components from Tulsa to industrial projects nationwide.",ca:"Logistics or transportation manager.",ea:"Oklahoma industrial fabricator — large module and tank component transport.",pts:["Storage tank component transport","Large steel module moves","Industrial project site delivery"]},
+
+  // SHIPPERS / 3PL
+  {n:"Landstar System",i:"Shippers",s:"Jacksonville, FL",p:"high",w:"Major asset-light transportation company with significant heavy haul capacity — works with specialized carriers like Bennett for oversized and heavy freight.",ca:"Agent or capacity manager for heavy haul/specialized freight.",ea:"Asset-light carrier with heavy haul needs — Bennett as preferred specialized partner.",pts:["Oversize and heavy permit loads","Agent-driven heavy haul freight","Southeast and national coverage"]},
+  {n:"nParrell Logistics",i:"Shippers",s:"Chicago, IL",p:"high",w:"National heavy haul broker and shipper — moves specialized industrial and trade show freight across the US.",ca:"Ask for the heavy haul brokerage or operations director.",ea:"Lead with heavy haul carrier partnerships and dedicated routing support.",pts:["Brokered heavy haul shipments","Specialized industrial cargo moves","National coverage with dedicated lanes"]},
+
+  // TRADE SHOW
+  {n:"Freeman Company",i:"Show Business",s:"Dallas, TX",p:"high",w:"Largest trade show and event services company in the US — ships massive exhibit structures, LED displays, and event infrastructure to convention centers nationwide.",ca:"Freight and logistics department at Dallas headquarters.",ea:"National trade show services leader — large exhibit and event structure transport.",pts:["Large exhibit structure moves","LED display and AV equipment transport","Convention center delivery and setup logistics"]},
+  {n:"GES (Global Experience Specialists)",i:"Show Business",s:"Las Vegas, NV",p:"high",w:"Major trade show services company — custom exhibit structures and large-scale event components move to venues across the country on tight show schedules.",ca:"Freight or logistics coordinator.",ea:"Trade show services company — large custom exhibit transport on schedule.",pts:["Custom exhibit structure shipping","Tight show-floor delivery windows","National venue delivery experience"]},
+  {n:"Atomic Props",i:"Show Business",s:"Los Angeles, CA",p:"med",w:"Specializes in custom event sets, trade show booths, and prop fabrication — large exhibit pieces require oversize shipping and installation logistics.",ca:"Ask for the trade show production or logistics manager.",ea:"Mention experience moving event exhibits and custom fabricated props.",pts:["Custom trade show booth shipments","Large exhibit prop transport","Event install logistics and timing"]},
+
+  // INDUSTRIAL PIPE & PLASTICS
+  {n:"Charlotte Pipe & Foundry",i:"Industrial Pipe & Plastics",s:"Charlotte, NC",p:"high",w:"Largest US cast iron and PVC pipe manufacturer — bundles of heavy pipe and large diameter spools require specialized transport.",ca:"Distribution or outbound logistics manager.",ea:"Pipe manufacturer — comparable to Chevron Phillips pipe freight.",pts:["Large diameter pipe bundles","Heavy cast iron pipe transport","Southeast distribution advantage for Charlotte"]},
+  {n:"Mueller Water Products",i:"Industrial Pipe & Plastics",s:"Atlanta, GA",p:"high",w:"Fire hydrants, valves, and large water main pipe — ships heavy cast and ductile iron products from Atlanta area plants.",ca:"Plant logistics manager.",ea:"Water infrastructure products manufacturer — Atlanta base, excellent fit.",pts:["Cast iron pipe and fitting transport","Large valve and hydrant shipments","Municipal water project deliveries"]},
+  {n:"Nucor Tubular Products",i:"Industrial Pipe & Plastics",s:"Numerous",p:"high",w:"Nucor's steel pipe division with multiple US mills — structural and line pipe shipments regularly run on permit loads.",ca:"Mill logistics or sales coordinator.",ea:"Steel pipe from Nucor mills — large structural pipe transport.",pts:["Structural steel pipe bundles","Line pipe for energy projects","Multiple mill locations nationwide"]},
+  {n:"Advanced Drainage Systems",i:"Industrial Pipe & Plastics",s:"Hilliard, OH",p:"med",w:"Largest plastic drainage pipe manufacturer in North America — large coils and bundles of heavy HDPE pipe from 100+ plants.",ca:"Transportation manager at headquarters or regional plant.",ea:"HDPE pipe manufacturer — volume freight potential from nearby plants.",pts:["Large HDPE pipe coil transport","Multiple plant locations","Municipal drainage project deliveries"]},
+
+  // WIND ENERGY — BLADES
+  {n:"TPI Composites",i:"Wind Energy",s:"Newton, IA",p:"high",w:"World's largest independent wind blade manufacturer with US plants in IA and ND — blades up to 75+ meters long are among the most extreme transport loads in any industry.",ca:"Plant logistics at the Newton, IA facility.",ea:"Wind blade manufacturer — most oversized load in the heavy haul world.",pts:["Long wind blade transport (75m+)","Multi-escort permit routing","Wind farm site delivery coordination"]},
+  {n:"LM Wind Power (GE Vernova)",i:"Wind Energy",s:"Grand Forks, ND",p:"high",w:"World's largest dedicated wind blade manufacturer — Grand Forks plant produces blades exceeding 100m requiring the most complex transport in the industry.",ca:"Plant logistics manager at Grand Forks, ND.",ea:"World's longest blades — extreme oversized transport specialist needed.",pts:["Extreme-length blade transport (100m+)","Multi-state permit coordination","Specialized wind blade trailer equipment"]},
+
+  // POWER GENERATION — ADDITIONAL
+  {n:"Generac Power Systems",i:"Power Generation",s:"Waukesha, WI",p:"high",w:"Largest US backup power manufacturer — industrial gensets from 150kW to 3MW ship from WI factories to hospitals, data centers, and utilities nationwide.",ca:"Outbound logistics at the Waukesha plant.",ea:"Industrial genset manufacturer — factory-to-facility delivery programs.",pts:["Large industrial generator delivery","Hospital and data center power installs","Factory-direct utility project moves"]},
+  {n:"MTU America (Rolls-Royce Power)",i:"Power Generation",s:"Mankato, MN",p:"high",w:"German premium industrial engine and genset maker with US facility — large diesel and gas generator sets for military, mining, and critical power customers.",ca:"Plant logistics at Mankato, MN.",ea:"Premium industrial genset manufacturer — high-value specialized transport.",pts:["Large industrial genset transport","Military and mine site delivery","Premium equipment careful handling"]},
+  {n:"Stewart & Stevenson (SSCL)",i:"Power Generation",s:"Houston, TX",p:"high",w:"Custom military and industrial power systems manufacturer — large military generator sets and specialized power equipment ship from TX to bases and industrial projects.",ca:"Government contracts or logistics manager.",ea:"Custom military power equipment transport — government contractor experience.",pts:["Military genset transport","Custom power system moves","Government and industrial project delivery"]},
+
+  // MILITARY & DEFENSE — ADDITIONAL
+  {n:"Textron Systems",i:"Military & Defense",s:"Hunt Valley, MD",p:"high",w:"Makes Armored Security Vehicles and surveillance systems — ships large tracked and wheeled armored platforms from MD to government facilities and overseas.",ca:"Defense logistics coordinator.",ea:"Armored vehicle and defense system transport — government contractor expertise.",pts:["Armored vehicle transport","Defense platform component moves","Government facility and port delivery"]},
+  {n:"LENCO Industries",i:"Armored Vehicles",s:"Pittsfield, MA",p:"med",w:"Manufactures BearCat armored vehicles for law enforcement — ships completed armored vehicles to police departments and government agencies nationwide.",ca:"Sales or logistics coordinator.",ea:"Law enforcement armored vehicle manufacturer — specialized transport.",pts:["BearCat armored vehicle transport","Law enforcement equipment delivery","Government and agency nationwide delivery"]},
+
+  // CRANE — ADDITIONAL
+  {n:"Sennebogen USA",i:"Crane & Lifting",s:"Stanley, NC",p:"high",w:"German material handling and crane equipment manufacturer with US plant in NC — large crawler cranes and material handlers produced in Bennett's backyard.",ca:"Plant logistics at Stanley, NC.",ea:"North Carolina crane manufacturer — SE territory advantage.",pts:["Crawler crane transport","Material handler moves","NC factory to job-site delivery"]},
+  {n:"Wolffkran USA",i:"Crane & Lifting",s:"Houston, TX",p:"med",w:"German tower crane manufacturer with US operations — ships tower crane components and mast sections to high-rise construction sites nationwide.",ca:"US logistics or sales manager.",ea:"Tower crane component and mast transport.",pts:["Tower crane mast section moves","Jib and trolley transport","High-rise construction delivery"]},
+
+  // CHEMICAL / INDUSTRIAL PROCESSING
+  {n:"BASF Corporation",i:"Oil & Gas",s:"Freeport, TX",p:"high",w:"World's largest chemical company with massive TX Gulf Coast plant — ships large reactor vessels, heat exchangers, and process modules during turnarounds and expansions.",ca:"Plant logistics or turnaround transportation manager.",ea:"Chemical plant turnaround equipment transport — large reactor vessels.",pts:["Large reactor vessel moves","Heat exchanger and column transport","Petrochemical plant project freight"]},
+  {n:"Dow Chemical (US)",i:"Oil & Gas",s:"Freeport, TX",p:"high",w:"Major chemical company with large Gulf Coast operations — ships heavy chemical processing equipment during plant expansions and scheduled turnarounds.",ca:"Supply chain or turnaround logistics manager.",ea:"Chemical plant expansion and turnaround equipment transport.",pts:["Process column and vessel transport","Large heat exchanger moves","Gulf Coast plant project freight"]},
+  {n:"Air Products (US)",i:"Industrial Machinery",s:"Allentown, PA",p:"high",w:"Industrial gas equipment manufacturer — large cryogenic cold boxes and air separation columns (often 200–500 tons) are among the heaviest engineered loads shipped in the US.",ca:"Project logistics manager.",ea:"Cryogenic equipment manufacturer — extreme heavy haul cold box transport.",pts:["Cryogenic cold box transport","Air separation column moves","Industrial gas plant project deliveries"]},
+  {n:"Linde Engineering (US)",i:"Industrial Machinery",s:"Houston, TX",p:"high",w:"German engineering giant — builds large cryogenic and gas processing plants. Ships large process skids, cold boxes, and heat exchangers to industrial project sites.",ca:"US project or logistics coordinator.",ea:"Cryogenic and gas process equipment — large module and skid transport.",pts:["Process skid and module transport","Cold box specialized moves","Industrial plant project logistics"]},
+
+  // PAPER & PULP
+  {n:"Georgia-Pacific",i:"Industrial Machinery",s:"Atlanta, GA",p:"high",w:"Koch Industries' paper and building products giant headquartered in Atlanta — ships large paper machine components and industrial equipment from multiple SE mills.",ca:"Corporate logistics or mill transportation manager.",ea:"Atlanta-based industrial giant — paper machine and mill equipment transport.",pts:["Paper machine component transport","Pulp mill equipment moves","SE mill distribution lane advantage"]},
+  {n:"Sappi North America",i:"Industrial Machinery",s:"Portland, ME",p:"med",w:"Major paper manufacturer with US mills — large paper machine rolls, press sections, and drying cylinders require specialized heavy transport between mills and suppliers.",ca:"Mill logistics or transportation manager.",ea:"Paper manufacturer — large paper machine component transport.",pts:["Paper machine roll and section transport","Press and dryer cylinder moves","Mill-to-mill equipment transfers"]},
+
+  // ELECTRICAL — ADDITIONAL
+  {n:"GE Grid Solutions (US)",i:"Electrical & Transformers",s:"Charleroi, PA",p:"high",w:"GE's power grid division manufacturing large power transformers — units ranging 50–600+ tons shipped from PA plant to utilities and grid modernization projects nationwide.",ca:"Logistics manager at Charleroi, PA plant.",ea:"Large utility transformer manufacturer — East Coast and national transport.",pts:["Large power transformer transport","Utility grid modernization delivery","East Coast and Southeast coverage"]},
+  {n:"Toshiba International",i:"Electrical & Transformers",s:"Houston, TX",p:"high",w:"Japanese electrical giant with US HQ in Houston — large industrial motors and transformers for utilities, oil & gas, and industrial customers shipped from TX distribution.",ca:"US logistics at Houston headquarters.",ea:"Large industrial motor and transformer transport from Houston.",pts:["Large motor and transformer moves","Utility and industrial delivery","Houston to national distribution"]},
+  {n:"Hitachi Energy (US)",i:"Electrical & Transformers",s:"Raleigh, NC",p:"high",w:"Swiss-Japanese engineering giant (ABB spin-off) — large power transformers and grid equipment from US facilities to utility and industrial grid projects.",ca:"US supply chain or logistics manager.",ea:"Large power transformer manufacturer — utility grid project transport.",pts:["Power transformer transport","Grid modernization equipment delivery","Utility project national coverage"]},
+
+  // MATERIAL HANDLING — ADDITIONAL
+  {n:"Crown Equipment",i:"Material Handling",s:"New Bremen, OH",p:"med",w:"US-owned forklift manufacturer in OH — large reach trucks, order pickers, and heavy-duty lift trucks from Ohio factory to distribution centers nationwide.",ca:"Outbound logistics at New Bremen, OH.",ea:"Forklift manufacturer — factory-to-distribution-center delivery.",pts:["Large forklift transport","Industrial DC delivery programs","Factory-to-dealer fleet moves"]},
+  {n:"Mitsubishi Logisnext Americas",i:"Material Handling",s:"Houston, TX",p:"med",w:"Japanese forklift giant with US distribution in Houston — large warehouse forklifts, heavy-duty lifts, and automated guided vehicles.",ca:"US logistics or dealer delivery manager.",ea:"Japanese forklift OEM US distribution — large lift equipment.",pts:["Large forklift transport","Houston to national dealer delivery","Industrial port and warehouse equipment"]},
+  {n:"Palfinger (US)",i:"Material Handling",s:"Niagara Falls, NY",p:"med",w:"Austrian crane manufacturer with US plant — truck-mounted knuckle boom cranes and aerial work platforms from NY facility to equipment dealers.",ca:"Plant logistics at Niagara Falls, NY.",ea:"Truck-mounted crane manufacturer — specialty lift equipment transport.",pts:["Truck-mounted crane transport","Knuckle boom crane moves","Industrial and construction delivery"]},
+
+  // MARINE — ADDITIONAL
+  {n:"General Dynamics NASSCO",i:"Marine & Shipbuilding",s:"San Diego, CA",p:"high",w:"Major US shipyard building Navy auxiliary vessels — large ship components, dry dock equipment, and modules require specialized heavy haul around the facility.",ca:"Plant logistics or transportation manager.",ea:"Shipyard heavy equipment and ship component transport.",pts:["Ship module transport","Dry dock equipment moves","Naval auxiliary vessel component delivery"]},
+  {n:"Gulf Marine Services",i:"Marine & Shipbuilding",s:"New Iberia, LA",p:"high",w:"Gulf Coast shipyard and fabrication yard — large offshore modules and marine structures ship from LA yard to offshore platforms and Gulf Coast projects.",ca:"Yard logistics or transportation manager.",ea:"Gulf Coast marine fabrication — module and structure transport.",pts:["Offshore module transport","Marine structure moves","Gulf Coast to port delivery"]},
+
+  // RAIL — ADDITIONAL
+  {n:"Siemens Mobility (US)",i:"Rail & Transportation",s:"Sacramento, CA",p:"high",w:"Manufactures Sprinter and Venture passenger rail cars at Sacramento facility — rail cars require specialized heavy haul from factory to rail networks and transit agencies.",ca:"Plant logistics manager at Sacramento, CA.",ea:"Passenger rail car manufacturer — factory-to-railyard specialized transport.",pts:["Passenger rail car transport","Factory-to-railyard delivery","Large rail vehicle moves"]},
+  {n:"Alstom (US Locomotives)",i:"Rail & Transportation",s:"Hornell, NY",p:"high",w:"French rail giant manufacturing Amtrak locomotives in NY — locomotive transport from factory to Amtrak and freight railroads is a highly specialized move.",ca:"Plant logistics at Hornell, NY.",ea:"Locomotive manufacturer — factory-to-railroad specialized transport.",pts:["Locomotive transport","Passenger rail equipment moves","Factory-to-Amtrak delivery programs"]},
+
+  // PRECAST CONCRETE — ADDITIONAL
+  {n:"County Materials Corporation",i:"Precast Concrete",s:"Marathon, WI",p:"med",w:"Large Midwest precast concrete manufacturer — ships bridge beams, box culverts, and infrastructure products to highway and municipal projects.",ca:"Plant logistics or transportation manager.",ea:"Midwest precast manufacturer — large infrastructure component transport.",pts:["Bridge beam and box culvert transport","Precast vault and manhole moves","Municipal infrastructure project delivery"]},
+  {n:"Concrete Pipe & Products",i:"Precast Concrete",s:"Houston, TX",p:"med",w:"Large diameter concrete pipe and manhole manufacturer in TX — ships heavy concrete pipe sections for water, sewer, and highway projects across the Gulf Coast.",ca:"Plant logistics or sales coordinator.",ea:"Texas precast pipe manufacturer — large infrastructure loads.",pts:["Large diameter concrete pipe transport","Manhole and vault moves","TX and Gulf Coast infrastructure projects"]},
+
+  // AGRICULTURAL — ADDITIONAL
+  {n:"Fendt (AGCO Division)",i:"Agricultural Equipment",s:"Jackson, MN",p:"high",w:"Premium German tractor brand manufactured at AGCO's Jackson, MN plant — high-value Fendt tractors require careful transport to dealers across the US.",ca:"Plant logistics at Jackson, MN.",ea:"Premium tractor manufacturer — factory-to-dealer transport.",pts:["High-value tractor transport","Factory-direct dealer delivery","Midwest origin, Southeast and national lanes"]},
+  {n:"Buhler Industries (US)",i:"Agricultural Equipment",s:"Minot, ND",p:"med",w:"Canadian ag equipment maker with US distribution — large air seeders, tillage machines, and wide implement wings requiring oversized transport to dealers.",ca:"US dealer or distribution logistics manager.",ea:"Large seeding and tillage equipment transport.",pts:["Air seeder wing transport","Large tillage equipment moves","Dealer distribution programs"]},
+
+  // BUILDING PRODUCTS / PREFAB — ADDITIONAL
+  {n:"American Buildings Company",i:"Prefab Steel Buildings",s:"Eufaula, AL",p:"high",w:"Major metal building manufacturer in Alabama — ships large steel building components, trusses, and frames to construction sites across the Southeast and beyond.",ca:"Plant logistics at Eufaula, AL.",ea:"Alabama metal building manufacturer — SE delivery lane advantage.",pts:["Steel building truss transport","AL plant to job-site delivery","Southeast contractor relationships"]},
+  {n:"NCI Group Buildings",i:"Prefab Steel Buildings",s:"Houston, TX",p:"high",w:"One of the largest US metal building systems companies — ships large prefab steel building components and wall panels from TX plants to commercial job sites.",ca:"Plant or corporate logistics manager.",ea:"Texas-based steel building manufacturer — Gulf Coast and national delivery.",pts:["Large steel panel transport","Building component multi-truck deliveries","TX plant to nationwide job sites"]},
+
+  // DATA CENTERS — ADDITIONAL
+  {n:"Eaton Critical Power",i:"Data Centers & Telecom",s:"Raleigh, NC",p:"high",w:"Makes large UPS systems and power distribution for data centers — large UPS modules can weigh 10–50 tons and ship from NC facilities to critical facilities nationwide.",ca:"Supply chain or logistics at Raleigh, NC.",ea:"Large UPS manufacturer — data center critical power transport.",pts:["Large UPS system transport","Critical power module delivery","Data center infrastructure moves"]},
+  {n:"Bloom Energy",i:"Data Centers & Telecom",s:"Fremont, CA",p:"med",w:"Fuel cell energy systems for data centers and industrial facilities — large power modules and fuel cell server stacks require careful specialized transport.",ca:"Logistics or supply chain manager.",ea:"Fuel cell power system transport — data center and industrial.",pts:["Fuel cell power module transport","Energy server skid delivery","Data center energy infrastructure moves"]},
+
+  // WATER TREATMENT — ADDITIONAL
+  {n:"Ovivo Water",i:"Water Treatment",s:"Salt Lake City, UT",p:"med",w:"Water treatment equipment manufacturer — large clarifiers, filtration systems, and aeration equipment for municipal and industrial water projects.",ca:"Project or logistics manager.",ea:"Water treatment equipment transport — large system moves.",pts:["Clarifier and aeration equipment moves","Municipal water project logistics","Large treatment system transport"]},
+  {n:"Xylem Inc",i:"Water Treatment",s:"Rye, NY",p:"high",w:"One of the world's largest water technology companies — large industrial pumps, lift stations, and treatment equipment shipped to utilities and industrial plants.",ca:"US supply chain or project logistics manager.",ea:"Water infrastructure equipment manufacturer — large pump and treatment transport.",pts:["Large industrial pump transport","Lift station equipment delivery","Municipal and industrial water project logistics"]},
+
+  // TRADE SHOW — ADDITIONAL
+  {n:"Derse Inc",i:"Show Business",s:"Milwaukee, WI",p:"high",w:"Major trade show exhibit design and production company — ships large custom booth structures and exhibit components to convention centers nationwide on tight show schedules.",ca:"Freight or project logistics coordinator.",ea:"Large trade show exhibit transport — tight delivery windows.",pts:["Large custom exhibit transport","National convention center delivery","Time-sensitive show-floor logistics"]},
+  {n:"Czarnowski Display Service",i:"Show Business",s:"Chicago, IL",p:"med",w:"National exhibit and display company — custom structures and large exhibit components require oversized freight to venues across the US.",ca:"Freight or operations coordinator.",ea:"Large exhibit structure and display transport.",pts:["Oversized exhibit structure moves","National convention delivery","Show-critical timing logistics"]},
+
+  // SHIPPERS — ADDITIONAL
+  {n:"Universal Truckload Services",i:"Shippers",s:"Warren, MI",p:"high",w:"National asset-light carrier with significant specialized and heavy haul capacity — works with carriers like Bennett as preferred specialized freight partners.",ca:"Heavy haul capacity or agent manager.",ea:"Asset-light carrier with specialized freight needs — Bennett as preferred partner.",pts:["Oversized and heavy permit loads","Agent-driven specialized freight","National coverage with SE strength"]},
+  {n:"RXO (formerly XPO Logistics)",i:"Shippers",s:"Charlotte, NC",p:"high",w:"Major tech-enabled freight brokerage — sources heavy haul and specialized carriers for industrial and manufacturing shippers nationwide.",ca:"Heavy specialized freight desk or operations.",ea:"Large freight brokerage — Bennett as preferred specialized carrier.",pts:["Heavy haul brokered loads","Specialized industrial freight","National shipper relationships"]},
+
+  // FABRICATORS — ADDITIONAL
+  {n:"CB&I (McDermott)",i:"Fabricators",s:"Houston, TX",p:"high",w:"One of the world's largest industrial contractors and fabricators — modular process equipment, storage tanks, and piping modules from Gulf Coast yards are extreme heavy haul.",ca:"Fabrication yard logistics or transportation manager.",ea:"Gulf Coast industrial fabricator — extreme heavy module transport.",pts:["Large modular process equipment moves","Storage tank component transport","Gulf Coast to plant-site project freight"]},
+  {n:"Matrix Service Company",i:"Fabricators",s:"Tulsa, OK",p:"high",w:"Industrial fabrication and services for storage tanks and process equipment — ships large steel modules and tank components from Tulsa to industrial projects.",ca:"Logistics or transportation manager.",ea:"Oklahoma industrial fabricator — large module and tank component transport.",pts:["Storage tank component transport","Large steel module moves","Industrial project site delivery"]},
+];
+
+// ─── STORAGE HELPERS ─────────────────────────────────────────────────────────
+const ls = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)||'[]'); } catch { return []; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v))
+};
+
+// ─── OVERFLOW POOL ───────────────────────────────────────────────────────────
+let overflowVisible = false;
+
+function getOverflow() { return ls.get('bennett_overflow'); }
+function saveOverflow(a) { ls.set('bennett_overflow', a); }
+
+function addToOverflow(p, type) {
+  const pool = getOverflow();
+  if (pool.some(x => x.n === p.n)) { showToast('Already in overflow pool.'); return; }
+  pool.push({ ...p, _type: type, _attempts: 1, _last: new Date().toLocaleDateString() });
+  saveOverflow(pool);
+  renderOverflow();
+  updateAllStats();
+  showToast(`🔁 ${p.n} moved to Overflow Pool`);
+}
+
+function retryOverflow(name) {
+  const pool = getOverflow();
+  const item = pool.find(x => x.n === name);
+  if (item) { item._attempts++; item._last = new Date().toLocaleDateString(); saveOverflow(pool); }
+  renderOverflow();
+  showToast(`Updated attempt count for ${name}`);
+}
+
+function reachOverflow(name) {
+  const pool = getOverflow().filter(x => x.n !== name);
+  saveOverflow(pool);
+  renderOverflow();
+  updateAllStats();
+  showToast(`✅ ${name} marked as reached — removed from overflow`);
+}
+
+function dropOverflow(name) {
+  const pool = getOverflow().filter(x => x.n !== name);
+  saveOverflow(pool);
+  renderOverflow();
+  updateAllStats();
+  showToast(`Removed ${name} from overflow`);
+}
+
+function toggleOverflow() {
+  overflowVisible = !overflowVisible;
+  document.getElementById('overflowList').style.display = overflowVisible ? 'flex' : 'none';
+  document.getElementById('overflow-toggle-icon').textContent = overflowVisible ? '▲ Hide' : '▼ Show';
+}
+
+function renderOverflow() {
+  const pool = getOverflow();
+  const sec = document.getElementById('overflowSection');
+  const badge = document.getElementById('overflow-count-badge');
+  badge.textContent = pool.length;
+  sec.classList.toggle('has-items', pool.length > 0);
+  if (!pool.length) { overflowVisible = false; document.getElementById('overflowList').style.display = 'none'; document.getElementById('overflow-toggle-icon').textContent = '▼ Show'; return; }
+  document.getElementById('overflowList').innerHTML = pool.map(p => `
+    <div class="over-card">
+      <div class="over-top">
+        <div class="over-name">${p.n}</div>
+        <span class="card-ind">${p.i}</span>
+        <span class="attempts-badge">🔁 ${p._attempts} attempt${p._attempts>1?'s':''}</span>
+      </div>
+      <div class="over-meta">📍 ${p.s} &nbsp;·&nbsp; Last attempt: ${p._last} &nbsp;·&nbsp; Source: ${p._type==='call'?'📞 Call list':'✉️ Email list'}</div>
+      <div class="over-footer">
+        <button class="btn-retry" onclick="retryOverflow('${p.n.replace(/'/g,"\\'")}')">+1 Attempt</button>
+        <button class="btn-reached" onclick="reachOverflow('${p.n.replace(/'/g,"\\'")}')">✅ Reached</button>
+        <button class="btn-drop" onclick="dropOverflow('${p.n.replace(/'/g,"\\'")}')">✕ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── DONE / OUTREACH TRACKING ────────────────────────────────────────────────
+function getDone() { return ls.get('bennett_done'); }
+function saveDone(a) { ls.set('bennett_done', a); }
+const todayISO = () => new Date().toISOString().split('T')[0];
+
+function isDone(name) {
+  return getDone().some(d => d.n === name && d.date === todayISO());
+}
+
+function toggleDone(name, type) {
+  const list = getDone();
+  const today = todayISO();
+  const idx = list.findIndex(d => d.n === name && d.date === today);
+  if (idx >= 0) { list.splice(idx, 1); } else { list.push({ n: name, type, date: today }); }
+  saveDone(list);
+  const done = isDone(name);
+  const btn = document.querySelector(`.done-btn[data-done="${name.replace(/"/g,'&quot;')}"]`);
+  if (btn) {
+    btn.textContent = done ? '✓ Done' : 'Mark Done';
+    btn.classList.toggle('is-done', done);
+    btn.closest('.card')?.classList.toggle('card-done', done);
+  }
+  updateAllStats();
+}
+
+function todayDoneCount(type) {
+  const today = todayISO();
+  return getDone().filter(d => d.type === type && d.date === today).length;
+}
+
+// ─── DISMISS (SKIP) ──────────────────────────────────────────────────────────
+function getDismissed() { return ls.get('bennett_dismissed'); }
+function saveDismissed(a) { ls.set('bennett_dismissed', a); }
+
+function dismissProspect(name, type) {
+  const d = getDismissed();
+  if (!d.includes(name)) { d.push(name); saveDismissed(d); }
+  if (type === 'call') {
+    callProspects = callProspects.filter(p => p.n !== name);
+    renderList('callList','callCount',callProspects,'call');
+  } else {
+    emailProspects = emailProspects.filter(p => p.n !== name);
+    renderList('emailList','emailCount',emailProspects,'email');
+  }
+  updateAllStats();
+  showToast(`✕ ${name} skipped — won't appear again`);
+}
+
+function resetDismissed() {
+  const d = getDismissed();
+  if (!d.length) { showToast('No skipped companies to reset.'); return; }
+  if (!confirm(`Reset ${d.length} skipped compan${d.length>1?'ies':'y'}? They'll show up in future lists again.`)) return;
+  saveDismissed([]);
+  updateAllStats();
+  showToast('Skipped companies reset!');
+}
+
+// ─── HIGH LEADS ───────────────────────────────────────────────────────────────
+function getHL() { return ls.get('bennett_high_leads'); }
+function saveHL(a) { ls.set('bennett_high_leads', a); }
+function isStarred(name) { return getHL().some(h => h.n === name); }
+
+function addToHighLeads(p, type) {
+  const list = getHL();
+  if (list.some(h => h.n === p.n)) { showToast('Already in High Leads!'); return; }
+  list.push({ ...p, _src: type, _notes: '', _at: new Date().toLocaleDateString() });
+  saveHL(list);
+  renderHighLeads(); updateAllStats(); refreshStarBtns();
+  showToast(`⭐ ${p.n} added to High Leads!`);
+}
+
+function removeFromHighLeads(name) {
+  saveHL(getHL().filter(h => h.n !== name));
+  renderHighLeads(); updateAllStats(); refreshStarBtns();
+  showToast('Removed from High Leads.');
+}
+
+function saveHLNote(name, notes) {
+  const list = getHL();
+  const item = list.find(h => h.n === name);
+  if (item) { item._notes = notes; saveHL(list); }
+}
+
+function clearHighLeads() {
+  if (!getHL().length) return;
+  if (!confirm('Clear all High Lead Prospects?')) return;
+  saveHL([]); renderHighLeads(); updateAllStats(); refreshStarBtns(); showToast('High Leads cleared.');
+}
+
+function refreshStarBtns() {
+  document.querySelectorAll('.star-btn[data-name]').forEach(btn => {
+    const s = isStarred(btn.dataset.name);
+    btn.textContent = s ? '★ Starred' : '☆ High Lead';
+    btn.classList.toggle('is-starred', s);
+  });
+}
+
+function renderHighLeads() {
+  const list = getHL();
+  const el = document.getElementById('highLeadList');
+  document.getElementById('highLeadCount').textContent = list.length + ' saved';
+  document.getElementById('hl-badge').textContent = list.length;
+  if (!list.length) { el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="icon">⭐</div><p>Star any prospect from your Call or Email lists to save them here.</p></div>'; return; }
+  el.innerHTML = list.map((p, i) => `
+    <div class="card priority-${p.p}">
+      <div class="card-top">
+        <div class="card-num">${i+1}.</div>
+        <div class="card-name">${p.n}</div>
+        <div class="card-ind">${p.i}</div>
+        <div class="chip ${p.p}">${p.p}</div>
+        <span class="hl-src">${p._src==='call'?'📞 Call':'✉️ Email'}</span>
+      </div>
+      <div class="card-loc">📍 <span>${p.s}</span></div>
+      <div class="card-why">${p.w}</div>
+      <div class="tp-label">Talking Points</div>
+      <ul class="tp-list">${p.pts.map(pt=>`<li>${pt}</li>`).join('')}</ul>
+      <div class="hl-notes">
+        <div class="hl-notes-lbl">Your Notes</div>
+        <textarea placeholder="Notes, next steps, contact info..." onblur="saveHLNote('${p.n.replace(/'/g,"\\'")}',this.value)">${p._notes||''}</textarea>
+      </div>
+      <div class="card-footer">
+        <div class="approach-tag">💡 ${p._src==='call'?p.ca:p.ea}</div>
+        <button class="copy-card" onclick="copyCardHL(${i})">Copy</button>
+        <button class="remove-hl" onclick="removeFromHighLeads('${p.n.replace(/'/g,"\\'")}')">✕ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+function copyCardHL(i) {
+  const p = getHL()[i];
+  const tip = p._src==='call' ? p.ca : p.ea;
+  const text = `HIGH LEAD: ${p.n}\nINDUSTRY: ${p.i}\nLOCATION: ${p.s}\nPRIORITY: ${p.p.toUpperCase()}\nWHY: ${p.w}\nAPPROACH: ${tip}\nTALKING POINTS:\n${p.pts.map(pt=>'  • '+pt).join('\n')}${p._notes?'\nNOTES: '+p._notes:''}`;
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied!'));
+}
+
+// ─── CUSTOMERS ────────────────────────────────────────────────────────────────
+let custFilter = 'all';
+function getCusts() { return ls.get('bennett_customers'); }
+function saveCusts(a) { ls.set('bennett_customers', a); }
+
+function saveCustomer() {
+  const company = document.getElementById('cust-company').value.trim();
+  if (!company) { showToast('Company name is required!'); return; }
+  const editId = document.getElementById('cust-edit-id').value;
+  const cust = {
+    id: editId || Date.now().toString(),
+    company, contact: document.getElementById('cust-contact').value.trim(),
+    phone: document.getElementById('cust-phone').value.trim(),
+    email: document.getElementById('cust-email').value.trim(),
+    industry: document.getElementById('cust-industry').value,
+    status: document.getElementById('cust-status').value,
+    notes: document.getElementById('cust-notes').value.trim(),
+    added: editId ? '' : new Date().toLocaleDateString()
+  };
+  if (editId) {
+    const list = getCusts(); const idx = list.findIndex(c=>c.id===editId);
+    if (idx>=0) { cust.added = list[idx].added; list[idx] = cust; saveCusts(list); }
+  } else {
+    const list = getCusts(); list.push(cust); saveCusts(list);
+  }
+  clearCustForm(); renderCustomers(); updateAllStats();
+  showToast(editId ? 'Customer updated!' : `👥 ${company} added to Customers!`);
+}
+
+function editCustomer(id) {
+  const c = getCusts().find(x=>x.id===id); if (!c) return;
+  document.getElementById('cust-edit-id').value = c.id;
+  document.getElementById('cust-company').value = c.company;
+  document.getElementById('cust-contact').value = c.contact;
+  document.getElementById('cust-phone').value = c.phone;
+  document.getElementById('cust-email').value = c.email;
+  document.getElementById('cust-industry').value = c.industry;
+  document.getElementById('cust-status').value = c.status;
+  document.getElementById('cust-notes').value = c.notes;
+  document.getElementById('cust-cancel-btn').style.display = 'block';
+  document.querySelector('.btn-add-cust').textContent = 'Update Customer';
+  document.getElementById('cust-company').focus();
+  switchTab('customers');
+}
+
+function cancelEditCustomer() {
+  clearCustForm();
+}
+
+function clearCustForm() {
+  ['cust-edit-id','cust-company','cust-contact','cust-phone','cust-email','cust-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cust-industry').value='';
+  document.getElementById('cust-status').value='active';
+  document.getElementById('cust-cancel-btn').style.display='none';
+  document.querySelector('.btn-add-cust').textContent='Save Customer';
+}
+
+function deleteCustomer(id) {
+  const c = getCusts().find(x=>x.id===id);
+  if (!c || !confirm(`Remove ${c.company} from Customers?`)) return;
+  saveCusts(getCusts().filter(x=>x.id!==id));
+  renderCustomers(); updateAllStats(); showToast('Customer removed.');
+}
+
+function filterCusts(status) {
+  custFilter = status;
+  ['all','active','followup','atrisk'].forEach(s => {
+    const el = document.getElementById('cf-'+s);
+    if (el) el.style.cssText = s===status ? 'color:#fff;border-color:rgba(255,255,255,.3);' : '';
+  });
+  renderCustomers();
+}
+
+function renderCustomers() {
+  const all = getCusts();
+  const list = custFilter==='all' ? all : all.filter(c=>c.status===custFilter);
+  const el = document.getElementById('custList');
+  document.getElementById('custCount').textContent = all.length + ' customers';
+  document.getElementById('cust-badge').textContent = all.length;
+  if (!list.length) {
+    el.innerHTML = `<div class="cust-empty"><div class="icon">👥</div><p>${all.length?'No customers match this filter.':'Add your active customers to track them here.'}</p></div>`;
+    return;
+  }
+  const statusLabel = { active:'✅ Active', followup:'🔔 Follow-Up', atrisk:'⚠️ At-Risk' };
+  el.innerHTML = list.map(c => `
+    <div class="cust-card status-${c.status}">
+      <div class="cust-top">
+        <div class="cust-name">${c.company}</div>
+        <span class="status-chip ${c.status}">${statusLabel[c.status]||c.status}</span>
+        <span class="cust-added">${c.added}</span>
+      </div>
+      ${c.industry?`<div class="card-ind" style="margin-bottom:5px;">${c.industry}</div>`:''}
+      ${c.contact?`<div class="cust-meta">👤 <span>${c.contact}</span></div>`:''}
+      <div class="cust-contact-info">
+        ${c.phone?`<span>📞 <a href="tel:${c.phone}">${c.phone}</a></span>`:''}
+        ${c.phone&&c.email?' &nbsp;·&nbsp; ':''}
+        ${c.email?`<span>✉️ <a href="mailto:${c.email}">${c.email}</a></span>`:''}
+      </div>
+      ${c.notes?`<div class="cust-notes" style="margin-top:7px;">${c.notes}</div>`:''}
+      <div class="cust-footer">
+        <button class="btn-edit-cust" onclick="editCustomer('${c.id}')">✏️ Edit</button>
+        <button class="btn-del-cust" onclick="deleteCustomer('${c.id}')">✕ Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── CALLBACKS ───────────────────────────────────────────────────────────────
+let cbTarget = null;
+let calYear, calMonth, calSelected = null;
+
+function getCBs() { return ls.get('bennett_callbacks'); }
+function saveCBs(a) { ls.set('bennett_callbacks', a); }
+
+function showCbModal(prospect, type) {
+  cbTarget = { prospect, type };
+  document.getElementById('cbModalName').textContent = prospect.n;
+  document.getElementById('cbModalIndustry').textContent = prospect.i + ' · ' + prospect.s;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('cbDate').value = today;
+  document.getElementById('cbDate').min = today;
+  document.getElementById('cbNote').value = '';
+  document.getElementById('cbOverlay').classList.add('open');
+}
+
+function hideCbModal() {
+  document.getElementById('cbOverlay').classList.remove('open');
+  cbTarget = null;
+}
+
+function confirmCallback() {
+  const date = document.getElementById('cbDate').value;
+  if (!date) { showToast('Please select a callback date!'); return; }
+  const note = document.getElementById('cbNote').value.trim();
+  const list = getCBs();
+  list.push({ ...cbTarget.prospect, _date: date, _note: note, _src: cbTarget.type, _id: Date.now().toString() });
+  saveCBs(list);
+  hideCbModal();
+  renderCallbackCalendar();
+  renderTodayCBs();
+  updateAllStats();
+  showToast(`📅 ${cbTarget ? cbTarget.prospect.n : ''} scheduled!`);
+}
+
+function removeCallback(id) {
+  saveCBs(getCBs().filter(c => c._id !== id));
+  renderCallbackCalendar();
+  renderTodayCBs();
+  if (calSelected) renderCBDayPanel(calSelected);
+  updateAllStats();
+  showToast('Callback removed.');
+}
+
+function doneCallback(id) {
+  const cb = getCBs().find(c => c._id === id);
+  saveCBs(getCBs().filter(c => c._id !== id));
+  renderCallbackCalendar();
+  renderTodayCBs();
+  if (calSelected) renderCBDayPanel(calSelected);
+  updateAllStats();
+  showToast(cb ? `✅ ${cb.n} — callback completed!` : 'Done!');
+}
+
+let todayCBVisible = false;
+function toggleTodayCB() {
+  todayCBVisible = !todayCBVisible;
+  document.getElementById('todayCBList').style.display = todayCBVisible ? 'flex' : 'none';
+  document.getElementById('today-cb-toggle').textContent = todayCBVisible ? '▲ Hide' : '▼ Show';
+}
+
+function renderTodayCBs() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const list = getCBs().filter(c => c._date === todayStr);
+  const sec = document.getElementById('todayCBSection');
+  document.getElementById('today-cb-badge').textContent = list.length;
+  sec.classList.toggle('has-items', list.length > 0);
+  if (!list.length) { todayCBVisible = false; document.getElementById('todayCBList').style.display = 'none'; document.getElementById('today-cb-toggle').textContent = '▼ Show'; return; }
+  document.getElementById('todayCBList').innerHTML = list.map(c => `
+    <div class="tcb-card">
+      <span class="tcb-name">${c.n}</span>
+      <span class="tcb-meta">${c.i} · ${c.s}</span>
+      ${c._note ? `<span class="tcb-note">"${c._note}"</span>` : ''}
+      <div style="display:flex;gap:6px;margin-left:auto;">
+        <button class="btn-tcb-done" onclick="doneCallback('${c._id}')">✅ Done</button>
+        <button class="btn-cb-del" onclick="removeCallback('${c._id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── CALENDAR ────────────────────────────────────────────────────────────────
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  calSelected = new Date().toISOString().split('T')[0];
+}
+
+function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCallbackCalendar(); renderCBDayPanel(calSelected); }
+function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCallbackCalendar(); renderCBDayPanel(calSelected); }
+function calJumpToday() {
+  const now = new Date();
+  calYear = now.getFullYear(); calMonth = now.getMonth();
+  calSelected = now.toISOString().split('T')[0];
+  renderCallbackCalendar(); renderCBDayPanel(calSelected);
+}
+
+function renderCallbackCalendar() {
+  const cbs = getCBs();
+  const cbDates = {};
+  cbs.forEach(c => { cbDates[c._date] = (cbDates[c._date]||0)+1; });
+
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${months[calMonth]} ${calYear}`;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const daysInPrev = new Date(calYear, calMonth, 0).getDate();
+
+  let html = '';
+  for (let i=0; i<firstDay; i++) {
+    const d = daysInPrev - firstDay + i + 1;
+    html += `<div class="cal-day other-month empty"><div class="cal-day-num">${d}</div></div>`;
+  }
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = ds === todayStr;
+    const isSel = ds === calSelected;
+    const count = cbDates[ds] || 0;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (isSel) cls += ' selected';
+    if (count && !isSel && !isToday) cls += ' has-cb';
+    html += `<div class="${cls}" onclick="selectCalDay('${ds}')">
+      <div class="cal-day-num">${d}</div>
+      ${count ? '<div class="cal-dot"></div>' : ''}
+    </div>`;
+  }
+  const remaining = (7 - (firstDay + daysInMonth) % 7) % 7;
+  for (let i=1; i<=remaining; i++) html += `<div class="cal-day other-month empty"><div class="cal-day-num">${i}</div></div>`;
+  document.getElementById('calDays').innerHTML = html;
+
+  const total = cbs.length;
+  document.getElementById('cbTabCount').textContent = total + ' scheduled';
+  document.getElementById('cb-badge').textContent = total;
+}
+
+function selectCalDay(dateStr) {
+  calSelected = dateStr;
+  renderCallbackCalendar();
+  renderCBDayPanel(dateStr);
+}
+
+function renderCBDayPanel(dateStr) {
+  if (!dateStr) return;
+  const list = getCBs().filter(c => c._date === dateStr);
+  const [y,m,d] = dateStr.split('-');
+  const label = new Date(+y,+m-1,+d).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('cbDayLabel').textContent = label;
+  document.getElementById('cbDayCount').textContent = list.length ? list.length + ' callback' + (list.length>1?'s':'') : '';
+  const el = document.getElementById('cbDayList');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty-state" style="padding:40px 20px;"><div class="icon">📅</div><p>No callbacks scheduled for this day.</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(c => `
+    <div class="cb-prospect-card">
+      <div class="card-top">
+        <div class="card-name">${c.n}</div>
+        <div class="card-ind">${c.i}</div>
+        <div class="chip ${c.p}">${c.p}</div>
+      </div>
+      <div class="card-loc">📍 <span>${c.s}</span> &nbsp;·&nbsp; Source: ${c._src==='call'?'📞 Call':'✉️ Email'}</div>
+      ${c._note ? `<div class="cb-note-display">📝 "${c._note}"</div>` : ''}
+      <div class="approach-tag" style="margin:7px 0;">💡 ${c._src==='call'?c.ca:c.ea}</div>
+      <div style="display:flex;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+        <button class="btn-cb-done" onclick="doneCallback('${c._id}')">✅ Reached — Mark Done</button>
+        <button class="cb-btn" onclick="showCbModal(getCBs().find(x=>x._id==='${c._id}'),'${c._src}')">📅 Reschedule</button>
+        <button class="btn-cb-del" onclick="removeCallback('${c._id}')">✕ Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ['prospects','highleads','callbacks','customers'].forEach(t => {
+    document.getElementById('tab-content-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'callbacks') { renderCallbackCalendar(); renderCBDayPanel(calSelected); }
+}
+
+// ─── GENERATION ──────────────────────────────────────────────────────────────
+let callProspects=[], emailProspects=[];
+const activeFilter=()=>document.getElementById('industryFilter').value;
+
+function pickN(arr, n, exclude=[]) {
+  const dismissed = getDismissed();
+  const pool = arr.filter(p=>!exclude.includes(p)&&!dismissed.includes(p.n)&&(activeFilter()==='all'||p.i===activeFilter()));
+  return [...pool].sort(()=>Math.random()-.5).slice(0, Math.min(n, pool.length));
+}
+
+function generateCalls() {
+  callProspects = pickN(DB, 50);
+  renderList('callList','callCount',callProspects,'call');
+  updateAllStats();
+}
+function generateEmails() {
+  emailProspects = pickN(DB, 50, callProspects);
+  renderList('emailList','emailCount',emailProspects,'email');
+  updateAllStats();
+}
+function generateBoth() {
+  callProspects = pickN(DB, 50);
+  emailProspects = pickN(DB, 50, callProspects);
+  renderList('callList','callCount',callProspects,'call');
+  renderList('emailList','emailCount',emailProspects,'email');
+  updateAllStats();
+}
+
+function renderList(listId, countId, prospects, type) {
+  const doneToday = todayDoneCount(type);
+  document.getElementById(countId).textContent = `${prospects.length} prospects · ${doneToday} done today`;
+  const el = document.getElementById(listId);
+  if (!prospects.length) { el.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>No prospects match the current filter.</p></div>'; return; }
+  el.innerHTML = prospects.map((p,i) => {
+    const starred = isStarred(p.n);
+    const done = isDone(p.n);
+    const esc = p.n.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return `<div class="card priority-${p.p}${done?' card-done':''}">
+      <div class="card-top">
+        <div class="card-num">${i+1}.</div>
+        <div class="card-name">${p.n}</div>
+        <div class="card-ind">${p.i}</div>
+        <div class="chip ${p.p}">${p.p}</div>
+      </div>
+      <div class="card-loc">📍 <span>${p.s}</span></div>
+      <div class="card-why">${p.w}</div>
+      <div class="tp-label">Talking Points</div>
+      <ul class="tp-list">${p.pts.map(pt=>`<li>${pt}</li>`).join('')}</ul>
+      <div class="card-footer">
+        <div class="approach-tag">💡 ${type==='call'?p.ca:p.ea}</div>
+        <button class="done-btn ${done?'is-done':''}" data-done="${esc}" onclick="toggleDone('${esc}','${type}')">${done?'✓ Done':'Mark Done'}</button>
+        <button class="star-btn ${starred?'is-starred':''}" data-name="${esc}" onclick="${type}Prospects[${i}]&&addToHighLeads(${type}Prospects[${i}],'${type}')">${starred?'★ Starred':'☆ High Lead'}</button>
+        <button class="cb-btn" onclick="${type}Prospects[${i}]&&showCbModal(${type}Prospects[${i}],'${type}')">📅 Callback</button>
+        <button class="no-ans-btn" onclick="${type}Prospects[${i}]&&addToOverflow(${type}Prospects[${i}],'${type}')">🔁 No Answer</button>
+        <button class="copy-card" onclick="copyCard(${i},'${type}')">Copy</button>
+        <button class="skip-btn" onclick="dismissProspect('${esc}','${type}')" title="Skip — never show this company again">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateAllStats() {
+  const all = [...callProspects,...emailProspects];
+  document.getElementById('statCall').textContent = callProspects.length;
+  document.getElementById('statEmail').textContent = emailProspects.length;
+  document.getElementById('statHigh').textContent = all.filter(p=>p.p==='high').length;
+  document.getElementById('statMed').textContent = all.filter(p=>p.p==='med').length;
+  document.getElementById('statOverflow').textContent = getOverflow().length;
+  document.getElementById('statStarred').textContent = getHL().length;
+  document.getElementById('statCB').textContent = getCBs().length;
+  document.getElementById('statSkipped').textContent = getDismissed().length;
+  document.getElementById('statCust').textContent = getCusts().length;
+  const callsDone = todayDoneCount('call');
+  const emailsDone = todayDoneCount('email');
+  document.getElementById('statCallsDone').textContent = callsDone;
+  document.getElementById('statEmailsDone').textContent = emailsDone;
+  document.getElementById('statTotalDone').textContent = callsDone + emailsDone;
+  document.getElementById('hl-badge').textContent = getHL().length;
+  document.getElementById('cb-badge').textContent = getCBs().length;
+  document.getElementById('cust-badge').textContent = getCusts().length;
+}
+
+function applyFilter() {
+  if (callProspects.length) renderList('callList','callCount', callProspects.filter(p=>activeFilter()==='all'||p.i===activeFilter()),'call');
+  if (emailProspects.length) renderList('emailList','emailCount', emailProspects.filter(p=>activeFilter()==='all'||p.i===activeFilter()),'email');
+}
+
+function copyCard(i, type) {
+  const p = type==='call' ? callProspects[i] : emailProspects[i];
+  const tip = type==='call' ? p.ca : p.ea;
+  const text = `PROSPECT: ${p.n}\nINDUSTRY: ${p.i}\nLOCATION: ${p.s}\nPRIORITY: ${p.p.toUpperCase()}\nWHY: ${p.w}\nAPPROACH: ${tip}\nTALKING POINTS:\n${p.pts.map(pt=>'  • '+pt).join('\n')}`;
+  navigator.clipboard.writeText(text).then(()=>showToast('Copied!'));
+}
+
+function copyAll(type) {
+  let list, text;
+  if (type==='highleads') {
+    list = getHL(); if (!list.length) { showToast('No High Leads saved yet.'); return; }
+    text = list.map((p,i)=>`${i+1}. ${p.n} | ${p.i} | ${p.s} | ${p.p.toUpperCase()}\n   ${p.w}\n   Approach: ${p._src==='call'?p.ca:p.ea}${p._notes?'\n   Notes: '+p._notes:''}`).join('\n\n');
+    navigator.clipboard.writeText(text).then(()=>showToast(`Copied ${list.length} high leads!`)); return;
+  }
+  list = type==='call' ? callProspects : emailProspects;
+  if (!list.length) { showToast('No prospects to copy.'); return; }
+  text = list.map((p,i)=>`${i+1}. ${p.n} | ${p.i} | ${p.s} | ${p.p.toUpperCase()}\n   ${p.w}\n   Approach: ${type==='call'?p.ca:p.ea}`).join('\n\n');
+  navigator.clipboard.writeText(text).then(()=>showToast(`Copied ${list.length} prospects!`));
+}
+
+function exportCSV(type) {
+  let list, rows;
+  if (type==='highleads') {
+    list = getHL(); if (!list.length) { showToast('No High Leads to export!'); return; }
+    rows = [['#','Company','Industry','State','Priority','Source','Why','Approach','Talking Points','Notes']];
+    list.forEach((p,i)=>rows.push([i+1,p.n,p.i,p.s,p.p,p._src,p.w,p._src==='call'?p.ca:p.ea,p.pts.join(' | '),p._notes||'']));
+  } else if (type==='callbacks') {
+    list = getCBs(); if (!list.length) { showToast('No callbacks to export!'); return; }
+    rows = [['Company','Industry','State','Priority','Date','Note','Source','Approach']];
+    list.forEach(c=>rows.push([c.n,c.i,c.s,c.p,c._date,c._note||'',c._src,c._src==='call'?c.ca:c.ea]));
+  } else if (type==='customers') {
+    list = getCusts(); if (!list.length) { showToast('No customers to export!'); return; }
+    rows = [['Company','Contact','Phone','Email','Industry','Status','Notes','Added']];
+    list.forEach(c=>rows.push([c.company,c.contact,c.phone,c.email,c.industry,c.status,c.notes,c.added]));
+  } else {
+    list = type==='call'?callProspects:emailProspects; if (!list.length) { showToast('Generate prospects first!'); return; }
+    rows = [['#','Company','Industry','State','Priority','Why','Approach','Talking Points']];
+    list.forEach((p,i)=>rows.push([i+1,p.n,p.i,p.s,p.p,p.w,type==='call'?p.ca:p.ea,p.pts.join(' | ')]));
+  }
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = `bennett_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  showToast(`Exported ${list.length} records!`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+const today = new Date();
+document.getElementById('todayDate').textContent = today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+document.getElementById('seedDisplay').textContent = `${today.toISOString().split('T')[0]} (refreshes daily)`;
+initCal();
+renderOverflow();
+renderHighLeads();
+renderTodayCBs();
+renderCallbackCalendar();
+renderCBDayPanel(calSelected);
+renderCustomers();
+generateBoth();
+</script>
+</body>
+</html>
